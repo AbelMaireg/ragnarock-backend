@@ -4,6 +4,14 @@ Backend service for a location-based makeup artist booking platform that connect
 
 This repository is built with NestJS + TypeScript and managed with Bun.
 
+## Workspace Layout
+
+This backend uses a NestJS monorepo layout:
+
+- `apps/main` - primary API application
+- `apps/admin` - admin-facing API application
+- `libs/config` - shared configuration module (env loading + validation)
+
 ## Product Scope
 
 Based on `docs/requirements-and-specs.md`, the platform supports three user roles:
@@ -43,8 +51,37 @@ For the complete requirements catalog (FR/NFR IDs, priorities, and open question
 - NestJS 11
 - TypeScript
 - Bun (package manager and script runner)
+- @nestjs/config
+- class-validator + class-transformer
 - Jest (unit/e2e testing)
 - Oxlint + Oxfmt (linting/formatting)
+
+## Configuration
+
+Environment variables are loaded from root env files in this order:
+
+1. `.env.${NODE_ENV}.local`
+2. `.env.${NODE_ENV}`
+3. `.env.local`
+4. `.env`
+
+Use `.env.example` as the starting template.
+
+The shared config module (`libs/config`) exposes namespaced config values via `registerAs`, so usage follows nested keys like:
+
+```ts
+this.config.get("database.port");
+this.config.get("cache.host");
+this.config.get("s3.bucket");
+this.config.get("app.port");
+```
+
+Validation is modularized per config domain in dedicated files:
+
+- `libs/config/src/app.config.ts`
+- `libs/config/src/database.config.ts`
+- `libs/config/src/cache.config.ts`
+- `libs/config/src/s3.config.ts`
 
 ## Getting Started
 
@@ -54,19 +91,28 @@ Install dependencies:
 bun install
 ```
 
-Run the application:
+Run the applications:
 
 ```bash
-# development
+# main app
 bun run start
 
-# watch mode
+# main app (watch)
 bun run start:dev
 
-# debug watch mode
+# main app (debug + watch)
 bun run start:debug
 
-# production mode (build output)
+# admin app
+bun run start:admin
+
+# admin app (watch)
+bun run start:admin:dev
+
+# admin app (debug + watch)
+bun run start:admin:debug
+
+# production mode (main build output)
 bun run start:prod
 ```
 
@@ -76,10 +122,10 @@ bun run start:prod
 # build
 bun run build
 
-# format source and tests
+# format apps and libs
 bun run format
 
-# lint source and tests
+# lint apps and libs
 bun run lint
 
 # unit tests
@@ -93,6 +139,9 @@ bun run test:cov
 
 # e2e tests
 bun run test:e2e
+
+# e2e tests (admin app)
+bun run test:e2e:admin
 ```
 
 ## Documentation
