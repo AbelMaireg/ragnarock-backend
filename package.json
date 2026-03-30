@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "oxfmt --write apps",
+    "format": "oxfmt --write apps libs",
     "start": "nest start main",
     "start:dev": "nest start main --watch",
     "start:debug": "nest start main --debug --watch",
@@ -16,7 +16,7 @@
     "start:admin": "nest start admin",
     "start:admin:dev": "nest start admin --watch",
     "start:admin:debug": "nest start admin --debug --watch",
-    "lint": "oxlint --fix apps",
+    "lint": "oxlint --fix apps libs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -26,8 +26,10 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "joi": "^18.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
