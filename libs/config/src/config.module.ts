@@ -1,27 +1,22 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule as NestConfigModule } from "@nestjs/config";
-import * as Joi from "joi";
+import appConfig from "./app.config";
+import cacheConfig from "./cache.config";
+import databaseConfig from "./database.config";
+import s3Config from "./s3.config";
 
 @Module({
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
       expandVariables: true,
+      load: [appConfig, databaseConfig, cacheConfig, s3Config],
       envFilePath: [
         `.env.${process.env.NODE_ENV ?? "development"}.local`,
         `.env.${process.env.NODE_ENV ?? "development"}`,
         ".env.local",
         ".env",
       ],
-      validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid("development", "test", "production").default("development"),
-        PORT: Joi.number().port().default(3000),
-        ADMIN_PORT: Joi.number().port().default(3001),
-      }),
-      validationOptions: {
-        abortEarly: false,
-        allowUnknown: true,
-      },
     }),
   ],
 })
