@@ -1,0 +1,1 @@
+export const FILE_STORAGE_STRATEGY = Symbol("FILE_STORAGE_STRATEGY");

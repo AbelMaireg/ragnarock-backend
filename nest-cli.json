@@ -45,6 +45,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/logger/tsconfig.lib.json"
       }
+    },
+    "uploader": {
+      "type": "library",
+      "root": "libs/uploader",
+      "entryFile": "index",
+      "sourceRoot": "libs/uploader/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/uploader/tsconfig.lib.json"
+      }
     }
   }
 }

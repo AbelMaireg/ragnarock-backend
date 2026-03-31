@@ -11,6 +11,8 @@ This backend uses a NestJS monorepo layout:
 - `apps/main` - primary API application
 - `apps/admin` - admin-facing API application
 - `libs/config` - shared configuration module (env loading + validation)
+- `libs/logger` - shared Winston-based logger module
+- `libs/uploader` - shared file storage module (local or S3 strategy)
 
 ## Product Scope
 
@@ -52,7 +54,10 @@ For the complete requirements catalog (FR/NFR IDs, priorities, and open question
 - TypeScript
 - Bun (package manager and script runner)
 - @nestjs/config
+- @aws-sdk/client-s3
+- @aws-sdk/s3-request-presigner
 - class-validator + class-transformer
+- Winston + winston-daily-rotate-file
 - Jest (unit/e2e testing)
 - Oxlint + Oxfmt (linting/formatting)
 
@@ -73,6 +78,7 @@ The shared config module (`libs/config`) exposes namespaced config values via `r
 this.config.get("database.port");
 this.config.get("cache.host");
 this.config.get("s3.bucket");
+this.config.get("filesystem.driver");
 this.config.get("app.port");
 ```
 
@@ -82,6 +88,32 @@ Validation is modularized per config domain in dedicated files:
 - `libs/config/src/database.config.ts`
 - `libs/config/src/cache.config.ts`
 - `libs/config/src/s3.config.ts`
+- `libs/config/src/filesystem.config.ts`
+
+### File Storage Configuration
+
+Uploader backend selection is runtime-configurable through environment variables:
+
+```env
+FILESYSTEM_DRIVER=local
+LOCAL_STORAGE_ROOT=uploads
+```
+
+- `FILESYSTEM_DRIVER` supports `local` or `s3`
+- When `local` is selected, files are written under `LOCAL_STORAGE_ROOT`
+- When `s3` is selected, existing `S3_*` config values are used
+
+Only one storage strategy is instantiated at startup, based on `FILESYSTEM_DRIVER`.
+
+### Shared Uploader Module
+
+`libs/uploader` implements a strategy pattern behind `UploaderService`:
+
+- Upload file content
+- Download file as binary (`Buffer`)
+- Generate download URL
+
+Missing files raise a `NotFoundException` for both strategies.
 
 ## Getting Started
 
