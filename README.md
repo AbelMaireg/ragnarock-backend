@@ -148,6 +148,21 @@ bun run start:admin:debug
 bun run start:prod
 ```
 
+## Docker Shortcuts
+
+Use the provided Makefile targets:
+
+```bash
+make up        # docker compose up --build
+make up-d      # docker compose up --build -d
+make down      # docker compose down
+make build     # docker compose build
+make rebuild   # down + up --build
+make restart   # docker compose restart
+make logs      # docker compose logs -f
+make ps        # docker compose ps
+```
+
 ## Scripts
 
 ```bash
