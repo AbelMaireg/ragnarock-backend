@@ -9,4 +9,9 @@ export class AdminController {
   getHello(): string {
     return this.adminService.getHello();
   }
+
+  @Get("db/ping")
+  testDbConnection(): Promise<{ status: "ok" }> {
+    return this.adminService.testDbConnection();
+  }
 }

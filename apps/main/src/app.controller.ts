@@ -9,4 +9,9 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get("db/ping")
+  testDbConnection(): Promise<{ status: "ok" }> {
+    return this.appService.testDbConnection();
+  }
 }
