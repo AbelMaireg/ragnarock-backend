@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    env_file:
+      - ../.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  main:
+    build:
+      context: ..
+      dockerfile: apps/main/Dockerfile.dev
+    working_dir: /app
+    command: bun run start:dev
+    env_file:
+      - ../.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../:/app
+      - ../node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ..
+      dockerfile: apps/admin/Dockerfile.dev
+    working_dir: /app
+    command: bun run start:admin:dev
+    env_file:
+      - ../.env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../:/app
+      - ../node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
