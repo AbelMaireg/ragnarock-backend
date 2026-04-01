@@ -18,7 +18,7 @@ services:
       context: ..
       dockerfile: apps/main/Dockerfile.dev
     working_dir: /app
-    command: bun run start:dev
+    command: sh -c "bun run prisma:generate && bun run start:dev"
     env_file:
       - ../.env
     ports:
@@ -35,7 +35,7 @@ services:
       context: ..
       dockerfile: apps/admin/Dockerfile.dev
     working_dir: /app
-    command: bun run start:admin:dev
+    command: sh -c "bun run prisma:generate && bun run start:admin:dev"
     env_file:
       - ../.env
     ports:
