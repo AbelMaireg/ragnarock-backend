@@ -22,6 +22,8 @@
       "@app/config/*": ["libs/config/src/*"],
       "@app/logger": ["libs/logger/src"],
       "@app/logger/*": ["libs/logger/src/*"],
+      "@app/prisma": ["libs/prisma/src"],
+      "@app/prisma/*": ["libs/prisma/src/*"],
       "@app/uploader": ["libs/uploader/src"],
       "@app/uploader/*": ["libs/uploader/src/*"]
     }

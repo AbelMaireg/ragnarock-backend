@@ -1,9 +1,13 @@
 import { registerAs } from "@nestjs/config";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsInt, IsString, Max, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { validateConfig } from "./validate-config";
 
 class DatabaseEnvironmentVariables {
+  @IsString()
+  @IsOptional()
+  DATABASE_URL?: string;
+
   @IsString()
   DB_HOST = "localhost";
 
@@ -29,8 +33,12 @@ class DatabaseEnvironmentVariables {
 
 export default registerAs("database", () => {
   const env = validateConfig(DatabaseEnvironmentVariables, process.env);
+  const databaseUrl =
+    env.DATABASE_URL ??
+    `postgresql://${env.DB_USER}:${env.DB_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}?schema=public`;
 
   return {
+    url: databaseUrl,
     host: env.DB_HOST,
     port: env.DB_PORT,
     user: env.DB_USER,
