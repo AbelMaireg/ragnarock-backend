@@ -1,6 +1,7 @@
 COMPOSE_FILE ?= ./docker/docker-compose.yml
 DC := docker compose -f $(COMPOSE_FILE)
 
+# ─── Docker ───────────────────────────────────────────────────────────
 .PHONY: up up-d down build rebuild restart logs ps
 
 up:
@@ -27,3 +28,66 @@ logs:
 
 ps:
 	$(DC) ps
+
+# ─── Dev (local, no Docker) ──────────────────────────────────────────
+.PHONY: dev dev-admin dev-debug install
+
+install:
+	bun install
+
+dev:
+	bun run start:dev
+
+dev-admin:
+	bun run start:admin:dev
+
+dev-debug:
+	bun run start:debug
+
+# ─── Build ────────────────────────────────────────────────────────────
+.PHONY: build-nest start-prod
+
+build-nest:
+	bun run build
+
+start-prod:
+	bun run start:prod
+
+# ─── Prisma ───────────────────────────────────────────────────────────
+.PHONY: prisma-generate prisma-migrate prisma-studio
+
+prisma-generate:
+	bun run prisma:generate
+
+prisma-migrate:
+	bun run prisma:migrate:dev
+
+prisma-studio:
+	bunx prisma studio
+
+# ─── Lint / Format ────────────────────────────────────────────────────
+.PHONY: lint format
+
+lint:
+	bun run lint
+
+format:
+	bun run format
+
+# ─── Test ─────────────────────────────────────────────────────────────
+.PHONY: test test-watch test-cov test-e2e test-e2e-admin
+
+test:
+	bun run test
+
+test-watch:
+	bun run test:watch
+
+test-cov:
+	bun run test:cov
+
+test-e2e:
+	bun run test:e2e
+
+test-e2e-admin:
+	bun run test:e2e:admin
