@@ -10,6 +10,7 @@
         "build": "nest build",
         "format": "oxfmt --write apps libs",
         "prisma:generate": "prisma generate",
+        "prisma:migrate:dev": "prisma migrate dev",
         "start": "nest start main",
         "start:dev": "nest start main --watch",
         "start:debug": "nest start main --debug --watch",
