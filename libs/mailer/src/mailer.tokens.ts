@@ -1,0 +1,1 @@
+export const EMAIL_CLIENT_STRATEGY = Symbol("EMAIL_CLIENT_STRATEGY");

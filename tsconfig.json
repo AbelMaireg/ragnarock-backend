@@ -24,6 +24,8 @@
       "@app/logger/*": ["libs/logger/src/*"],
       "@app/prisma": ["libs/prisma/src"],
       "@app/prisma/*": ["libs/prisma/src/*"],
+      "@app/mailer": ["libs/mailer/src"],
+      "@app/mailer/*": ["libs/mailer/src/*"],
       "@app/uploader": ["libs/uploader/src"],
       "@app/uploader/*": ["libs/uploader/src/*"]
     }
