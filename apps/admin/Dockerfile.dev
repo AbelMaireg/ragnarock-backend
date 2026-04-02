@@ -8,6 +8,9 @@ RUN chown node:node /app
 
 USER node
 
+COPY docker/entrypoint.dev.sh /usr/local/bin/entrypoint.sh
+
 EXPOSE 3001
 
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["bun", "run", "start:admin:dev"]
