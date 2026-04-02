@@ -1,2 +1,0 @@
-# Handlebars partials; oxfmt does not support {{> partial}} syntax
-**/*.hbs
