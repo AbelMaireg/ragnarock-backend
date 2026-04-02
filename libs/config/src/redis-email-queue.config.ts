@@ -5,7 +5,7 @@ import { validateConfig } from "./validate-config";
 
 class RedisEmailQueueEnvironmentVariables {
   @IsString()
-  REDIS_URL = "redis://localhost:6379";
+  REDIS_URL = "redis://redis:6379";
 
   @IsString()
   EMAIL_QUEUE_STREAM = "stream:email:outgoing";

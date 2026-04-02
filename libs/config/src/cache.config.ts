@@ -5,7 +5,7 @@ import { validateConfig } from "./validate-config";
 
 class CacheEnvironmentVariables {
   @IsString()
-  REDIS_HOST = "localhost";
+  REDIS_HOST = "redis";
 
   @Transform(({ value }) => Number(value))
   @IsInt()
