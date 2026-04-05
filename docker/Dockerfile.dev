@@ -1,0 +1,15 @@
+FROM node:24-alpine
+
+RUN npm install -g bun
+
+WORKDIR /app
+
+RUN chown node:node /app
+
+USER node
+
+COPY docker/entrypoint.apps.dev.sh /usr/local/bin/entrypoint.sh
+
+EXPOSE 3000 3001
+
+ENTRYPOINT ["entrypoint.sh"]
