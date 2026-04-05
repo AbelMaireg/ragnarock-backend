@@ -19,7 +19,7 @@ Create a commit only after format, lint, and build checks pass.
 1. Run format check (no writes):
 
 ```bash
-npx oxfmt --check src test
+bunx oxfmt --check src test
 ```
 
 2. Run lint check (no autofix):
@@ -63,5 +63,5 @@ git commit -m "<title>" -m "<body>"
 ## Example
 
 ```bash
-npx oxfmt --check src test && oxlint src test && bun run build && git add . && git commit -m "feat: add booking validation" -m "Add server-side validation for booking payloads to prevent invalid radius and date combinations. This improves API reliability and returns actionable validation errors to clients."
+bunx oxfmt --check src test && oxlint src test && bun run build && git add . && git commit -m "feat: add booking validation" -m "Add server-side validation for booking payloads to prevent invalid radius and date combinations. This improves API reliability and returns actionable validation errors to clients."
 ```
