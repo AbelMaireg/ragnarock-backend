@@ -48,6 +48,22 @@ export const createBetterAuthInstance = (
     database: prismaAdapter(prismaService, {
       provider: "postgresql",
     }),
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            await mailerService.sendTemplate({
+              to: user.email,
+              subject: "Welcome",
+              template: "welcome",
+              context: {
+                name: user.name ?? user.email,
+              },
+            });
+          },
+        },
+      },
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
