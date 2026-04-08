@@ -29,7 +29,9 @@
       "@app/uploader": ["libs/uploader/src"],
       "@app/uploader/*": ["libs/uploader/src/*"],
       "@app/auth": ["libs/auth/src"],
-      "@app/auth/*": ["libs/auth/src/*"]
+      "@app/auth/*": ["libs/auth/src/*"],
+      "@app/docs": ["libs/docs/src"],
+      "@app/docs/*": ["libs/docs/src/*"]
     }
   }
 }

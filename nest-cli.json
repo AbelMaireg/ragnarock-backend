@@ -81,6 +81,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/auth/tsconfig.lib.json"
       }
+    },
+    "docs": {
+      "type": "library",
+      "root": "libs/docs",
+      "entryFile": "index",
+      "sourceRoot": "libs/docs/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/docs/tsconfig.lib.json"
+      }
     }
   }
 }

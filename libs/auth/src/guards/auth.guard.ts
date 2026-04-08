@@ -30,6 +30,9 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
+    if (request.path.startsWith("/docs")) {
+      return true;
+    }
     const headers = new Headers();
 
     for (const [key, value] of Object.entries(request.headers)) {
