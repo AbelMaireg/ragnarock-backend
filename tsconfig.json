@@ -27,7 +27,9 @@
       "@app/mailer": ["libs/mailer/src"],
       "@app/mailer/*": ["libs/mailer/src/*"],
       "@app/uploader": ["libs/uploader/src"],
-      "@app/uploader/*": ["libs/uploader/src/*"]
+      "@app/uploader/*": ["libs/uploader/src/*"],
+      "@app/auth": ["libs/auth/src"],
+      "@app/auth/*": ["libs/auth/src/*"]
     }
   }
 }

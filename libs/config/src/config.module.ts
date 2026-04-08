@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule as NestConfigModule } from "@nestjs/config";
 import appConfig from "./app.config";
+import authConfig from "./auth.config";
 import brevoConfig from "./brevo.config";
 import cacheConfig from "./cache.config";
 import databaseConfig from "./database.config";
@@ -17,6 +18,7 @@ import s3Config from "./s3.config";
       expandVariables: true,
       load: [
         appConfig,
+        authConfig,
         databaseConfig,
         cacheConfig,
         s3Config,
