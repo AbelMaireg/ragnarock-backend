@@ -8,7 +8,9 @@ import { emailOTP } from "better-auth/plugins/email-otp";
 import { organization } from "better-auth/plugins/organization";
 import { twoFactor } from "better-auth/plugins/two-factor";
 import { AuthSecondaryStorage } from "./redis/auth-redis.provider";
+import { openAPI } from "better-auth/plugins";
 
+/** `url` is the fallback base (see BETTER_AUTH_URL); per-request host uses Better Auth dynamic baseURL. */
 type AuthConfig = {
   secret: string;
   url: string;
@@ -42,28 +44,22 @@ export const createBetterAuthInstance = (
   return betterAuth({
     appName: config.appName,
     secret: config.secret,
-    baseURL: config.url,
+    baseURL: {
+      allowedHosts: [
+        "main.localhost",
+        "admin.localhost",
+        "localhost:3000",
+        "localhost:3001",
+        "127.0.0.1:3000",
+        "127.0.0.1:3001",
+      ],
+      fallback: config.url,
+      protocol: "http",
+    },
     basePath: config.basePath,
-    trustedOrigins: [new URL(config.url).origin],
     database: prismaAdapter(prismaService, {
       provider: "postgresql",
     }),
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            await mailerService.sendTemplate({
-              to: user.email,
-              subject: "Welcome",
-              template: "welcome",
-              context: {
-                name: user.name ?? user.email,
-              },
-            });
-          },
-        },
-      },
-    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
@@ -187,6 +183,7 @@ export const createBetterAuthInstance = (
           });
         },
       }),
+      openAPI(),
     ],
   });
 };
