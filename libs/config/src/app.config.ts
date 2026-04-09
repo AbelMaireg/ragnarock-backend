@@ -38,7 +38,7 @@ class AppEnvironmentVariables {
   DOCS_OPENAPI_PATH_ADMIN = "/docs/openapi.json";
 
   @IsString()
-  DOCS_TITLE_MAIN = "Makeup Main API";
+  DOCS_TITLE_MAIN = "Main API";
 
   @IsString()
   DOCS_DESCRIPTION_MAIN = "Main service API documentation";
@@ -47,7 +47,7 @@ class AppEnvironmentVariables {
   DOCS_VERSION_MAIN = "1.0.0";
 
   @IsString()
-  DOCS_TITLE_ADMIN = "Makeup Admin API";
+  DOCS_TITLE_ADMIN = "Admin API";
 
   @IsString()
   DOCS_DESCRIPTION_ADMIN = "Admin service API documentation";

@@ -80,7 +80,14 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
         throw new Error(`Unknown email template: ${job.template}`);
       }
 
-      const html = await this.templateRendererService.render(templatePath, job.context);
+      const appName =
+        this.configService.get<string>("auth.appName") ??
+        this.configService.get<string>("mail.fromName") ??
+        "Application";
+      const html = await this.templateRendererService.render(templatePath, {
+        appName,
+        ...job.context,
+      });
       const sendInput: SendEmailInput = {
         to: job.to,
         subject: job.subject,

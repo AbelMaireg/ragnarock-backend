@@ -14,7 +14,7 @@ async function bootstrap() {
   const openApiPath = configService.get<string>("app.docsOpenApiPathAdmin", "/docs/openapi.json");
 
   setupApiDocs(app, {
-    title: configService.get<string>("app.docsTitleAdmin", "Makeup Admin API"),
+    title: configService.get<string>("app.docsTitleAdmin", "Admin API"),
     description: configService.get<string>(
       "app.docsDescriptionAdmin",
       "Admin service API documentation",

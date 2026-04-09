@@ -29,7 +29,7 @@ class AuthEnvironmentVariables {
   AUTH_USE_SECURE_COOKIES = false;
 
   @IsString()
-  AUTH_APP_NAME = "Makeup App";
+  AUTH_APP_NAME = "Application";
 
   @Transform(({ value }) => Number(value))
   @IsInt()

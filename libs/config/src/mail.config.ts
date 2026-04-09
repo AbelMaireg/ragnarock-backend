@@ -15,7 +15,7 @@ class MailEnvironmentVariables {
   MAIL_FROM_EMAIL = "no-reply@example.com";
 
   @IsString()
-  MAIL_FROM_NAME = "Makeup App";
+  MAIL_FROM_NAME = "Application";
 
   @IsString()
   MAIL_TEMPLATE_ROOT = "libs/mailer/src/templates/views";
