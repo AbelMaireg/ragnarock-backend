@@ -9,4 +9,5 @@ export { default as mailConfig } from "./mail.config";
 export { default as nodemailerConfig } from "./nodemailer.config";
 export { default as redisEmailQueueConfig } from "./redis-email-queue.config";
 export { default as s3Config } from "./s3.config";
+export { default as typesenseConfig } from "./typesense.config";
 export { validateConfig } from "./validate-config";

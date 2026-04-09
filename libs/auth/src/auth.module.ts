@@ -1,5 +1,6 @@
 import { MailerService } from "@app/mailer";
 import { PrismaService } from "@app/prisma";
+import { TypesenseService } from "@app/typesense";
 import { Global, Inject, Module, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
@@ -27,12 +28,19 @@ import { createAuthRedisClient, createAuthSecondaryStorage } from "./redis/auth-
     },
     {
       provide: BETTER_AUTH_INSTANCE,
-      inject: [ConfigService, PrismaService, AUTH_SECONDARY_STORAGE, MailerService],
+      inject: [
+        ConfigService,
+        PrismaService,
+        AUTH_SECONDARY_STORAGE,
+        MailerService,
+        TypesenseService,
+      ],
       useFactory: (
         configService: ConfigService,
         prismaService: PrismaService,
         secondaryStorage: ReturnType<typeof createAuthSecondaryStorage>,
         mailerService: MailerService,
+        typesenseService: TypesenseService,
       ) =>
         createBetterAuthInstance(
           {
@@ -82,6 +90,7 @@ import { createAuthRedisClient, createAuthSecondaryStorage } from "./redis/auth-
           prismaService,
           secondaryStorage,
           mailerService,
+          typesenseService,
         ),
     },
     AuthService,

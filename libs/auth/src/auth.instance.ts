@@ -1,5 +1,6 @@
 import { MailerService } from "@app/mailer";
 import { PrismaService } from "@app/prisma";
+import type { TypesenseService } from "@app/typesense";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins/admin";
@@ -40,6 +41,7 @@ export const createBetterAuthInstance = (
   prismaService: PrismaService,
   secondaryStorage: AuthSecondaryStorage,
   mailerService: MailerService,
+  typesenseService: TypesenseService,
 ) => {
   return betterAuth({
     appName: config.appName,
@@ -185,5 +187,19 @@ export const createBetterAuthInstance = (
       }),
       openAPI(),
     ],
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            await typesenseService.upsertUser(user);
+          },
+        },
+        update: {
+          after: async (user) => {
+            await typesenseService.upsertUser(user);
+          },
+        },
+      },
+    },
   });
 };

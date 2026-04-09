@@ -31,7 +31,9 @@
       "@app/auth": ["libs/auth/src"],
       "@app/auth/*": ["libs/auth/src/*"],
       "@app/docs": ["libs/docs/src"],
-      "@app/docs/*": ["libs/docs/src/*"]
+      "@app/docs/*": ["libs/docs/src/*"],
+      "@app/typesense": ["libs/typesense/src"],
+      "@app/typesense/*": ["libs/typesense/src/*"]
     }
   }
 }

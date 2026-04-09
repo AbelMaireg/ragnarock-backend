@@ -90,6 +90,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/docs/tsconfig.lib.json"
       }
+    },
+    "typesense": {
+      "type": "library",
+      "root": "libs/typesense",
+      "entryFile": "index",
+      "sourceRoot": "libs/typesense/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/typesense/tsconfig.lib.json"
+      }
     }
   }
 }
