@@ -33,11 +33,17 @@ services:
       - typesense_data:/data
     env_file:
       - ../.env
+    # Official image has no curl/wget; use bash /dev/tcp to verify the HTTP port is listening.
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8108/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 3s bash -c 'echo > /dev/tcp/127.0.0.1/8108' || exit 1",
+        ]
       interval: 5s
-      timeout: 3s
+      timeout: 5s
       retries: 20
+      start_period: 10s
 
   mailpit:
     image: axllent/mailpit:latest
@@ -69,7 +75,7 @@ services:
       mailpit:
         condition: service_started
       typesense:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres_data:
