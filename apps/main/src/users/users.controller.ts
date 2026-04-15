@@ -1,13 +1,14 @@
 import { Controller, Get, Post, Query } from "@nestjs/common";
 import { UsersService } from "./users.service";
+import { SearchUsersQueryDto } from "./dto/search-users.query.dto";
 
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get("search")
-  search(@Query("q") q = "*", @Query("page") page = "1", @Query("per_page") perPage = "20") {
-    return this.usersService.search(q, Number(page), Number(perPage));
+  search(@Query() query: SearchUsersQueryDto) {
+    return this.usersService.search(query);
   }
 
   @Post("reindex")

@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
+import { PaginatedResponseBase } from "@app/common";
 import { PrismaService } from "@app/prisma";
 import { TypesenseService } from "@app/typesense";
+import type { UserDocument } from "@app/typesense/collections/user.collection";
+import { SearchUsersQueryDto } from "./dto/search-users.query.dto";
 
 @Injectable()
 export class UsersService {
@@ -9,12 +12,21 @@ export class UsersService {
     private readonly typesenseService: TypesenseService,
   ) {}
 
-  async search(q: string, page = 1, perPage = 20) {
+  async search(query: SearchUsersQueryDto): Promise<PaginatedResponseBase<UserDocument>> {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 20;
+    const q = query.q || "*";
     const result = await this.typesenseService.searchUsers({ q, page, per_page: perPage });
+
+    const total = result.found ?? 0;
+    const totalPages = total > 0 ? Math.ceil(total / perPage) : 0;
+
     return {
-      found: result.found,
-      page: result.page,
-      hits: result.hits?.map((hit) => hit.document) ?? [],
+      items: result.hits?.map((hit) => hit.document) ?? [],
+      page: result.page ?? page,
+      perPage,
+      total,
+      totalPages,
     };
   }
 
