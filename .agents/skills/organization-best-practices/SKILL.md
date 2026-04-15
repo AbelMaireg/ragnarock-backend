@@ -477,3 +477,141 @@ export const auth = betterAuth({
   ],
 });
 ```
+
+# Project Specifig Features
+
+You are building a multi-tenant SaaS system with a clear separation between Organizations, Projects, and Teams.
+
+## Core Architecture
+
+The system must follow this hierarchy:
+
+Organization
+│
+├── Projects
+│     ├── Project A
+│     ├── Project B
+│
+├── Teams
+│     ├── Frontend Team
+│     ├── Backend Team
+│     ├── Team A
+│
+└── Team ↔️ Project Assignments
+├── Frontend → Project A
+├── Backend → Project B
+
+## Requirements
+
+1. Organizations
+
+* Each organization represents a company/workspace
+* Organizations own all projects and teams
+* Users belong to an organization
+
+2. Projects
+
+* Projects are business-level entities (NOT infrastructure projects)
+* Projects belong to an organization
+* Projects do NOT directly store user permissions
+
+3. Teams
+
+* Teams are independent groups within an organization
+* Teams can represent roles like frontend, backend, or custom groups
+* Users are assigned to teams
+
+4. Team Membership
+
+* A user can belong to multiple teams
+* A team can have multiple users
+
+5. Team ↔️ Project Assignment
+
+* Teams are assigned to projects
+* Access to a project is granted ONLY through team membership
+* Users do NOT get direct access to projects
+
+6. Authorization Rules
+
+* A user can access a project IF:
+
+  * The user belongs to a team
+  * That team is assigned to the project
+* Optional: support roles at the team-project level (viewer, editor, admin)
+
+7. Authentication
+
+* Use Better Auth for authentication
+* Use session.user.id as the identity reference
+* Do NOT rely on the auth provider for authorization logic
+
+8. Database Design
+
+Required tables:
+
+* organizations
+
+  * id
+  * name
+
+* users (from auth)
+
+* projects
+
+  * id
+  * name
+  * organization_id
+
+* teams
+
+  * id
+  * name
+  * organization_id
+
+* team_members
+
+  * id
+  * user_id
+  * team_id
+
+* team_projects
+
+  * id
+  * team_id
+  * project_id
+
+Optional:
+
+* team_project_roles (team_id, project_id, role)
+
+9. Access Flow
+
+All authorization checks must follow this flow:
+
+User → Team Membership → Team → Project Assignment → Project Access
+
+10. Constraints
+
+* No direct user-to-project relationship
+* No project access without team assignment
+* All entities must belong to an organization
+* System must support scalability for multiple organizations (multi-tenancy)
+
+11. Implementation Notes
+
+* Use a single backend (e.g. Supabase) as infrastructure
+* Treat "projects" as application-level entities, not backend instances
+* Implement authorization logic in the application layer or via database policies
+* Prefer reusable permission-checking utilities (e.g. canAccessProject(userId, projectId))
+
+## Goal
+
+Create a flexible, scalable authorization system where:
+
+* Teams are reusable across projects
+* Permissions are centrally managed via teams
+* Projects remain clean and do not manage users directly
+* The system is extensible for roles and future access control needs
+
+Ensure the implementation strictly follows this architecture and does not fall back to user-based direct permissions.
