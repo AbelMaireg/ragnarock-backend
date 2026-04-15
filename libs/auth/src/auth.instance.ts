@@ -15,6 +15,8 @@ import { openAPI } from "better-auth/plugins";
 type AuthConfig = {
   secret: string;
   url: string;
+  /** Browser-facing app URL for invitation email links (not the API base). */
+  publicAppUrl: string;
   basePath: string;
   sessionExpiresInSeconds: number;
   sessionUpdateAgeSeconds: number;
@@ -78,7 +80,8 @@ export const createBetterAuthInstance = (
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
+      // OTP flow handles signup verification; disable link-based signup verification emails.
+      sendOnSignUp: false,
       sendVerificationEmail: async ({ user, url }) => {
         await mailerService.sendTemplate({
           to: user.email,
@@ -151,12 +154,14 @@ export const createBetterAuthInstance = (
           enabled: true,
         },
         sendInvitationEmail: async ({ email, inviter, organization, invitation }) => {
+          const base = config.publicAppUrl.replace(/\/$/, "");
+          const acceptUrl = `${base}/dashboard/accept-invitation?id=${encodeURIComponent(invitation.id)}`;
           await mailerService.sendTemplate({
             to: email,
             subject: `Invitation to join ${organization.name}`,
             template: "organizationInvitation",
             context: {
-              url: invitation.id,
+              url: acceptUrl,
               organizationName: organization.name,
               inviterName: inviter.user.name ?? inviter.user.email,
             },
@@ -167,6 +172,8 @@ export const createBetterAuthInstance = (
       bearer(),
       emailOTP({
         ...config.emailOtp,
+        // Ensure signup triggers OTP delivery for verification flow.
+        sendVerificationOnSignUp: true,
         sendVerificationOTP: async ({ email, otp, type }) => {
           const subjectByType: Record<string, string> = {
             "sign-in": "Your sign-in verification code",

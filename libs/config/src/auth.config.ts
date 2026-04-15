@@ -11,6 +11,10 @@ class AuthEnvironmentVariables {
   @IsString()
   BETTER_AUTH_URL!: string;
 
+  /** Public web app origin for links in emails (invitations). Example: http://localhost:3000 */
+  @IsString()
+  AUTH_PUBLIC_APP_URL = "http://localhost:3000";
+
   @IsString()
   BETTER_AUTH_BASE_PATH = "/api/auth";
 
@@ -81,6 +85,7 @@ export default registerAs("auth", () => {
   return {
     secret: env.BETTER_AUTH_SECRET,
     url: env.BETTER_AUTH_URL,
+    publicAppUrl: (env.AUTH_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, ""),
     basePath: env.BETTER_AUTH_BASE_PATH,
     sessionExpiresInSeconds: env.SESSION_EXPIRES_IN_SECONDS,
     sessionUpdateAgeSeconds: env.SESSION_UPDATE_AGE_SECONDS,

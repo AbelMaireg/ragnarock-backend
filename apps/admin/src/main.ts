@@ -7,6 +7,10 @@ import { AdminModule } from "./admin.module";
 async function bootstrap() {
   const app = await NestFactory.create(AdminModule, { bufferLogs: true });
   app.useLogger(await app.resolve(LoggerService));
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("app.adminPort", 3001);

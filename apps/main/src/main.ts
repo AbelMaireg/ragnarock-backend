@@ -7,6 +7,10 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(await app.resolve(LoggerService));
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("app.port", 3000);

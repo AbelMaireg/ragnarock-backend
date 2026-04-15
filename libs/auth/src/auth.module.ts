@@ -46,6 +46,7 @@ import { createAuthRedisClient, createAuthSecondaryStorage } from "./redis/auth-
           {
             secret: configService.getOrThrow<string>("auth.secret"),
             url: configService.getOrThrow<string>("auth.url"),
+            publicAppUrl: configService.getOrThrow<string>("auth.publicAppUrl"),
             basePath: configService.get<string>("auth.basePath", "/api/auth"),
             sessionExpiresInSeconds: configService.get<number>(
               "auth.sessionExpiresInSeconds",
