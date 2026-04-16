@@ -32,6 +32,23 @@ class AuthEnvironmentVariables {
   @IsBoolean()
   AUTH_USE_SECURE_COOKIES = false;
 
+  /** Comma-separated list of origins that can make auth requests (CSRF whitelist). */
+  @IsString()
+  AUTH_TRUSTED_ORIGINS =
+    "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,http://main.localhost,http://admin.localhost,http://app.localhost";
+
+  /** Parent domain for cross-subdomain cookies, e.g. "localhost" or "example.com". Empty disables. */
+  @IsString()
+  AUTH_COOKIE_DOMAIN = "localhost";
+
+  /**
+   * Force cookies to use SameSite=None; Secure so they're sent on cross-site XHR.
+   * Safe for local dev because browsers treat *.localhost as a secure context.
+   */
+  @Transform(({ value }) => value === "true" || value === true)
+  @IsBoolean()
+  AUTH_CROSS_SITE_COOKIES = true;
+
   @IsString()
   AUTH_APP_NAME = "Application";
 
@@ -90,6 +107,11 @@ export default registerAs("auth", () => {
     sessionExpiresInSeconds: env.SESSION_EXPIRES_IN_SECONDS,
     sessionUpdateAgeSeconds: env.SESSION_UPDATE_AGE_SECONDS,
     useSecureCookies: env.AUTH_USE_SECURE_COOKIES,
+    trustedOrigins: env.AUTH_TRUSTED_ORIGINS.split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0),
+    cookieDomain: env.AUTH_COOKIE_DOMAIN.trim() || undefined,
+    crossSiteCookies: env.AUTH_CROSS_SITE_COOKIES,
     appName: env.AUTH_APP_NAME,
     emailOtp: {
       otpLength: env.AUTH_EMAIL_OTP_LENGTH,

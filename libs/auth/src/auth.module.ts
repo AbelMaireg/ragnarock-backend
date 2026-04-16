@@ -57,6 +57,9 @@ import { createAuthRedisClient, createAuthSecondaryStorage } from "./redis/auth-
               86400,
             ),
             useSecureCookies: configService.get<boolean>("auth.useSecureCookies", false),
+            trustedOrigins: configService.get<string[]>("auth.trustedOrigins", []),
+            cookieDomain: configService.get<string | undefined>("auth.cookieDomain"),
+            crossSiteCookies: configService.get<boolean>("auth.crossSiteCookies", true),
             appName: configService.get<string>("auth.appName", "Application"),
             emailOtp: {
               otpLength: configService.get<number>("auth.emailOtp.otpLength", 6),

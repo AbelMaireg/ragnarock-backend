@@ -21,6 +21,12 @@ type AuthConfig = {
   sessionExpiresInSeconds: number;
   sessionUpdateAgeSeconds: number;
   useSecureCookies: boolean;
+  /** Origins allowed to make CSRF-protected calls (frontend apps). */
+  trustedOrigins: string[];
+  /** Parent domain to share cookies across subdomains (e.g. "localhost" or "example.com"). */
+  cookieDomain?: string;
+  /** Force SameSite=None; Secure cookies (required for cross-site XHR). */
+  crossSiteCookies: boolean;
   appName: string;
   emailOtp: {
     otpLength: number;
@@ -61,6 +67,7 @@ export const createBetterAuthInstance = (
       protocol: "http",
     },
     basePath: config.basePath,
+    trustedOrigins: config.trustedOrigins,
     database: prismaAdapter(prismaService, {
       provider: "postgresql",
     }),
@@ -104,6 +111,23 @@ export const createBetterAuthInstance = (
     secondaryStorage,
     advanced: {
       useSecureCookies: config.useSecureCookies,
+      ...(config.cookieDomain
+        ? {
+            crossSubDomainCookies: {
+              enabled: true,
+              domain: config.cookieDomain,
+            },
+          }
+        : {}),
+      ...(config.crossSiteCookies
+        ? {
+            defaultCookieAttributes: {
+              sameSite: "none" as const,
+              secure: true,
+              httpOnly: true,
+            },
+          }
+        : {}),
     },
     rateLimit: {
       enabled: true,
