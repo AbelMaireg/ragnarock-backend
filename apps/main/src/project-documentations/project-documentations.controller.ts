@@ -38,6 +38,15 @@ export class ProjectDocumentationsController {
     return this.projectDocumentationsService.list(projectId, query);
   }
 
+  @Get(":documentationId")
+  findOne(
+    @CurrentOrganization() _organizationId: string,
+    @Param("projectId") projectId: string,
+    @Param("documentationId") documentationId: string,
+  ) {
+    return this.projectDocumentationsService.findOne(projectId, documentationId);
+  }
+
   @UseGuards(ProjectRoleGuard)
   @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
   @Post()

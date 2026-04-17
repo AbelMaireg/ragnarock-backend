@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { DocumentationStatus, Prisma } from "@prisma/client";
+import { PaginatedResponseBase } from "@app/common";
 import { PrismaService } from "@app/prisma";
 import {
   CreateProjectDocumentationDto,
@@ -6,38 +8,69 @@ import {
   UpdateProjectDocumentationDto,
 } from "./dto/project-documentation.dto";
 
+const authorSelect = { select: { id: true, name: true, email: true } } as const;
+
+export type ProjectDocumentationWithAuthor = Prisma.ProjectDocumentationGetPayload<{
+  include: { author: typeof authorSelect };
+}>;
+
 @Injectable()
 export class ProjectDocumentationsService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async list(projectId: string, query: ListProjectDocumentationsQueryDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
+  async list(
+    projectId: string,
+    query: ListProjectDocumentationsQueryDto,
+  ): Promise<PaginatedResponseBase<ProjectDocumentationWithAuthor>> {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 20;
+    const skip = (page - 1) * perPage;
 
-    const where = { projectId, type: query.type };
-    const [data, totalItems] = await this.prismaService.$transaction([
+    const where: Prisma.ProjectDocumentationWhereInput = {
+      projectId,
+      ...(query.type !== undefined ? { type: query.type } : {}),
+      ...(query.status !== undefined ? { status: query.status } : {}),
+      ...(query.search?.trim()
+        ? {
+            OR: [
+              { title: { contains: query.search.trim(), mode: "insensitive" } },
+              { content: { contains: query.search.trim(), mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const [items, total] = await this.prismaService.$transaction([
       this.prismaService.projectDocumentation.findMany({
         where,
         skip,
-        take: limit,
-        include: { author: { select: { id: true, name: true, email: true } } },
+        take: perPage,
+        include: { author: authorSelect },
         orderBy: { updatedAt: "desc" },
       }),
       this.prismaService.projectDocumentation.count({ where }),
     ]);
-    const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / limit);
+
+    const totalPages = total === 0 ? 0 : Math.ceil(total / perPage);
+
     return {
-      data,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      items,
+      page,
+      perPage,
+      total,
+      totalPages,
     };
+  }
+
+  async findOne(projectId: string, documentationId: string): Promise<ProjectDocumentationWithAuthor> {
+    const doc = await this.prismaService.projectDocumentation.findFirst({
+      where: { id: documentationId, projectId },
+      include: { author: authorSelect },
+    });
+    if (!doc) {
+      throw new NotFoundException("Documentation not found");
+    }
+    return doc;
   }
 
   async create(projectId: string, userId: string, dto: CreateProjectDocumentationDto) {
@@ -47,6 +80,7 @@ export class ProjectDocumentationsService {
         createdBy: userId,
         title: dto.title.trim(),
         type: dto.type,
+        status: dto.status ?? DocumentationStatus.draft,
         content: dto.content,
       },
     });
@@ -71,15 +105,17 @@ export class ProjectDocumentationsService {
     await this.ensureDocumentation(projectId, documentationId);
     const current = await this.prismaService.projectDocumentation.findUnique({
       where: { id: documentationId },
-      select: { version: true },
+      select: { version: true, content: true },
     });
+    const contentChanged = dto.content !== undefined && dto.content !== current?.content;
     const documentation = await this.prismaService.projectDocumentation.update({
       where: { id: documentationId },
       data: {
         title: dto.title?.trim(),
         type: dto.type,
+        status: dto.status,
         content: dto.content,
-        version: dto.content !== undefined ? (current?.version ?? 1) + 1 : undefined,
+        version: contentChanged ? (current?.version ?? 1) + 1 : undefined,
       },
     });
     await this.prismaService.projectActivity.create({

@@ -1,19 +1,16 @@
-import { DocumentationType } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from "class-validator";
+import { DocumentationStatus, DocumentationType } from "@prisma/client";
+import { IsEnum, IsOptional, IsString, MaxLength } from "class-validator";
+import { PaginatedRequestBase } from "@app/common";
 
-export class ListProjectDocumentationsQueryDto {
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+export class ListProjectDocumentationsQueryDto extends PaginatedRequestBase {
   @IsOptional()
-  page?: number = 1;
+  @IsString()
+  @MaxLength(500)
+  search?: string;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsEnum(DocumentationStatus)
   @IsOptional()
-  limit?: number = 20;
+  status?: DocumentationStatus;
 
   @IsEnum(DocumentationType)
   @IsOptional()
@@ -28,6 +25,10 @@ export class CreateProjectDocumentationDto {
   @IsEnum(DocumentationType)
   type!: DocumentationType;
 
+  @IsEnum(DocumentationStatus)
+  @IsOptional()
+  status?: DocumentationStatus;
+
   @IsString()
   content!: string;
 }
@@ -41,6 +42,10 @@ export class UpdateProjectDocumentationDto {
   @IsEnum(DocumentationType)
   @IsOptional()
   type?: DocumentationType;
+
+  @IsEnum(DocumentationStatus)
+  @IsOptional()
+  status?: DocumentationStatus;
 
   @IsString()
   @IsOptional()

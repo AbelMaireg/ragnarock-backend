@@ -33,11 +33,35 @@ enum TaskPriority {
     urgent
 }
 
+enum DocumentationStatus {
+    draft
+    pending_review
+    completed
+    rejected
+}
+
+/// Industry-standard doc kinds (abbreviations as enum members).
 enum DocumentationType {
+    brd
+    prd
+    frd
     srs
     srd
-    architecture
+    trd
+    sad
+    adr
+    hld
+    lld
+    icd
+    dbd
     api
+    stp
+    std
+    rtm
+    ug
+    om
+    wbs
+    raci
     note
 }
 
@@ -286,19 +310,22 @@ model ProjectTask {
 }
 
 model ProjectDocumentation {
-    id         String            @id @default(cuid())
+    id         String               @id @default(cuid())
     projectId  String
     title      String
-    type       DocumentationType @default(note)
+    type       DocumentationType    @default(note)
+    status     DocumentationStatus  @default(draft)
     content    String
-    version    Int               @default(1)
+    version    Int                  @default(1)
     createdBy  String
-    createdAt  DateTime          @default(now())
-    updatedAt  DateTime          @updatedAt
-    project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    author     User              @relation("ProjectDocumentationAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
+    createdAt  DateTime             @default(now())
+    updatedAt  DateTime             @updatedAt
+    project    Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    author     User                 @relation("ProjectDocumentationAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
 
     @@index([projectId])
+    @@index([projectId, status])
+    @@index([projectId, type])
     @@index([createdBy])
     @@index([type])
     @@map("projectDocumentation")
