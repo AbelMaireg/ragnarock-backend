@@ -10,7 +10,7 @@ bun run prisma:generate
 echo "Running Prisma migrations..."
 bunx prisma migrate deploy
 
-echo "Starting main app on port 3000..."
+echo "Starting main app (PORT from env, default 8000)..."
 bun run start:dev &
 
 echo "Starting admin app on port 3001..."

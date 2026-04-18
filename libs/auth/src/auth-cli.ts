@@ -17,11 +17,43 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
+const oauthRedirectBase = (process.env.BETTER_AUTH_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const basePath = process.env.BETTER_AUTH_BASE_PATH ?? "/api/auth";
+
+const cliSocialProviders = {
+  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        google: {
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          redirectURI: `${oauthRedirectBase}${basePath}/callback/google`,
+        },
+      }
+    : {}),
+  ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+    ? {
+        github: {
+          clientId: process.env.GITHUB_CLIENT_ID,
+          clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          redirectURI: `${oauthRedirectBase}${basePath}/callback/github`,
+        },
+      }
+    : {}),
+};
+
 export const auth: any = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET ?? "please-set-a-real-secret-with-32-plus-characters",
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://main.localhost",
+  // CLI/schema only; runtime app uses dynamic baseURL + BETTER_AUTH_URL for OAuth redirect base.
+  baseURL: "http://main.localhost",
   basePath: process.env.BETTER_AUTH_BASE_PATH ?? "/api/auth",
   database: prismaAdapter(prisma, { provider: "postgresql" }),
+  ...(Object.keys(cliSocialProviders).length > 0 ? { socialProviders: cliSocialProviders } : {}),
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github", "credential"],
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,

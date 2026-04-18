@@ -21,7 +21,7 @@ async function bootstrap() {
   );
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>("app.port", 3000);
+  const port = configService.get<number>("app.port", 8000);
   const docsPath = configService.get<string>("app.docsPathMain", "/docs");
   const openApiPath = configService.get<string>("app.docsOpenApiPathMain", "/docs/openapi.json");
 

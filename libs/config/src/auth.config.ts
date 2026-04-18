@@ -1,7 +1,10 @@
 import { registerAs } from "@nestjs/config";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsIn, IsInt, IsString, Min, MinLength } from "class-validator";
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Min, MinLength } from "class-validator";
 import { validateConfig } from "./validate-config";
+
+const emptyToUndefined = (value: unknown) =>
+  value === "" || value === undefined || value === null ? undefined : value;
 
 class AuthEnvironmentVariables {
   @IsString()
@@ -35,7 +38,7 @@ class AuthEnvironmentVariables {
   /** Comma-separated list of origins that can make auth requests (CSRF whitelist). */
   @IsString()
   AUTH_TRUSTED_ORIGINS =
-    "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,http://main.localhost,http://admin.localhost,http://app.localhost";
+    "http://main.localhost,http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,http://admin.localhost,http://app.localhost";
 
   /** Parent domain for cross-subdomain cookies, e.g. "localhost" or "example.com". Empty disables. */
   @IsString()
@@ -94,10 +97,41 @@ class AuthEnvironmentVariables {
   @Transform(({ value }) => value === "true" || value === true)
   @IsBoolean()
   AUTH_EMAIL_OTP_CHANGE_EMAIL_VERIFY_CURRENT = false;
+
+  /** Google OAuth (optional). Both required to enable the Google provider. */
+  @Transform(({ value }) => emptyToUndefined(value))
+  @IsOptional()
+  @IsString()
+  GOOGLE_CLIENT_ID?: string;
+
+  @Transform(({ value }) => emptyToUndefined(value))
+  @IsOptional()
+  @IsString()
+  GOOGLE_CLIENT_SECRET?: string;
+
+  /** GitHub OAuth (optional). Both required to enable the GitHub provider. */
+  @Transform(({ value }) => emptyToUndefined(value))
+  @IsOptional()
+  @IsString()
+  GITHUB_CLIENT_ID?: string;
+
+  @Transform(({ value }) => emptyToUndefined(value))
+  @IsOptional()
+  @IsString()
+  GITHUB_CLIENT_SECRET?: string;
 }
 
 export default registerAs("auth", () => {
   const env = validateConfig(AuthEnvironmentVariables, process.env);
+
+  const googleOAuth =
+    env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }
+      : undefined;
+  const githubOAuth =
+    env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? { clientId: env.GITHUB_CLIENT_ID, clientSecret: env.GITHUB_CLIENT_SECRET }
+      : undefined;
 
   return {
     secret: env.BETTER_AUTH_SECRET,
@@ -126,6 +160,10 @@ export default registerAs("auth", () => {
         enabled: env.AUTH_EMAIL_OTP_CHANGE_EMAIL_ENABLED,
         verifyCurrentEmail: env.AUTH_EMAIL_OTP_CHANGE_EMAIL_VERIFY_CURRENT,
       },
+    },
+    oauth: {
+      google: googleOAuth,
+      github: githubOAuth,
     },
   };
 });

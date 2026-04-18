@@ -90,6 +90,14 @@ import { createAuthRedisClient, createAuthSecondaryStorage } from "./redis/auth-
                 ),
               },
             },
+            oauth: {
+              google: configService.get<{ clientId: string; clientSecret: string } | undefined>(
+                "auth.oauth.google",
+              ),
+              github: configService.get<{ clientId: string; clientSecret: string } | undefined>(
+                "auth.oauth.github",
+              ),
+            },
           },
           prismaService,
           secondaryStorage,

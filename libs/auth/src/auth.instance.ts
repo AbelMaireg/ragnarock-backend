@@ -11,7 +11,7 @@ import { twoFactor } from "better-auth/plugins/two-factor";
 import { AuthSecondaryStorage } from "./redis/auth-redis.provider";
 import { openAPI } from "better-auth/plugins";
 
-/** `url` is the fallback base (see BETTER_AUTH_URL); per-request host uses Better Auth dynamic baseURL. */
+/** `url` is BETTER_AUTH_URL — use `http://localhost:8000` so OAuth redirect_uri matches provider consoles; API traffic can still use main.localhost via dynamic baseURL. */
 type AuthConfig = {
   secret: string;
   url: string;
@@ -42,6 +42,10 @@ type AuthConfig = {
       verifyCurrentEmail: boolean;
     };
   };
+  oauth?: {
+    google?: { clientId: string; clientSecret: string };
+    github?: { clientId: string; clientSecret: string };
+  };
 };
 
 export const createBetterAuthInstance = (
@@ -51,12 +55,39 @@ export const createBetterAuthInstance = (
   mailerService: MailerService,
   typesenseService: TypesenseService,
 ) => {
+  const oauthRedirectBase = config.url.replace(/\/$/, "");
+  const oauthCallbackUrl = (provider: "google" | "github") =>
+    `${oauthRedirectBase}${config.basePath}/callback/${provider}`;
+
+  const socialProviders = {
+    ...(config.oauth?.google
+      ? {
+          google: {
+            clientId: config.oauth.google.clientId,
+            clientSecret: config.oauth.google.clientSecret,
+            redirectURI: oauthCallbackUrl("google"),
+          },
+        }
+      : {}),
+    ...(config.oauth?.github
+      ? {
+          github: {
+            clientId: config.oauth.github.clientId,
+            clientSecret: config.oauth.github.clientSecret,
+            redirectURI: oauthCallbackUrl("github"),
+          },
+        }
+      : {}),
+  };
+
   return betterAuth({
     appName: config.appName,
     secret: config.secret,
     baseURL: {
       allowedHosts: [
         "main.localhost",
+        "localhost:8000",
+        "127.0.0.1:8000",
         "admin.localhost",
         "localhost:3000",
         "localhost:3001",
@@ -71,6 +102,15 @@ export const createBetterAuthInstance = (
     database: prismaAdapter(prismaService, {
       provider: "postgresql",
     }),
+    ...(Object.keys(socialProviders).length > 0 ? { socialProviders } : {}),
+    account: {
+      encryptOAuthTokens: true,
+      accountLinking: {
+        enabled: true,
+        // `credential` is the provider id for email/password accounts (see Better Auth account table).
+        trustedProviders: ["google", "github", "credential"],
+      },
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
@@ -146,6 +186,14 @@ export const createBetterAuthInstance = (
         "/forget-password": {
           window: 300,
           max: 3,
+        },
+        "/sign-in/social": {
+          window: 60,
+          max: 20,
+        },
+        "/link-social": {
+          window: 60,
+          max: 10,
         },
       },
     },
