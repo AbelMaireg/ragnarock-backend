@@ -147,6 +147,12 @@ export const createBetterAuthInstance = (
       cookieCache: {
         enabled: true,
       },
+      // With Redis secondary storage, persist sessions in Postgres so session.userId stays FK-valid.
+      storeSessionInDatabase: true,
+    },
+    verification: {
+      // OAuth state lives in verification storage; keep a DB copy when using Redis (avoids lost state).
+      storeInDatabase: true,
     },
     secondaryStorage,
     advanced: {
@@ -276,6 +282,21 @@ export const createBetterAuthInstance = (
         update: {
           after: async (user) => {
             await typesenseService.upsertUser(user);
+          },
+        },
+      },
+      account: {
+        create: {
+          before: async (account) => {
+            const userRow = await prismaService.user.findUnique({
+              where: { id: account.userId },
+            });
+            if (!userRow) {
+              throw new Error(
+                "Cannot link this provider: your session does not match a user in the database. Sign out, sign in again, then retry linking.",
+              );
+            }
+            return { data: account };
           },
         },
       },
