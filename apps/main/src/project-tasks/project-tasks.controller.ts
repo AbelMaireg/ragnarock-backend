@@ -16,7 +16,12 @@ import { CurrentOrganization } from "../project-auth/current-organization.decora
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
-import { CreateProjectTaskDto, ListProjectTasksQueryDto, UpdateProjectTaskDto } from "./dto/project-task.dto";
+import {
+  CreateProjectTaskDto,
+  ListProjectTasksQueryDto,
+  ReorderProjectTasksDto,
+  UpdateProjectTaskDto,
+} from "./dto/project-task.dto";
 import { ProjectTasksService } from "./project-tasks.service";
 
 @Auth()
@@ -32,6 +37,27 @@ export class ProjectTasksController {
     @Query() query: ListProjectTasksQueryDto,
   ) {
     return this.projectTasksService.list(projectId, query);
+  }
+
+  @Get(":taskId")
+  getOne(
+    @CurrentOrganization() _organizationId: string,
+    @Param("projectId") projectId: string,
+    @Param("taskId") taskId: string,
+  ) {
+    return this.projectTasksService.getById(projectId, taskId);
+  }
+
+  @UseGuards(ProjectRoleGuard)
+  @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
+  @Patch("reorder")
+  reorder(
+    @CurrentOrganization() _organizationId: string,
+    @Param("projectId") projectId: string,
+    @CurrentUser("id") userId: string,
+    @Body() dto: ReorderProjectTasksDto,
+  ) {
+    return this.projectTasksService.reorder(projectId, dto, userId);
   }
 
   @UseGuards(ProjectRoleGuard)

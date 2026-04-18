@@ -1,6 +1,17 @@
-import { TaskPriority, TaskStatus } from "@prisma/client";
+import { TaskPhase, TaskPriority, TaskStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from "class-validator";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from "class-validator";
 
 export class ListProjectTasksQueryDto {
   @Type(() => Number)
@@ -18,6 +29,20 @@ export class ListProjectTasksQueryDto {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  @IsEnum(TaskPhase)
+  @IsOptional()
+  phase?: TaskPhase;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  assigneeId?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(200)
+  search?: string;
 }
 
 export class CreateProjectTaskDto {
@@ -38,13 +63,27 @@ export class CreateProjectTaskDto {
   @IsOptional()
   status?: TaskStatus;
 
+  @IsEnum(TaskPhase)
+  @IsOptional()
+  phase?: TaskPhase;
+
   @IsString()
   @IsOptional()
   assigneeId?: string;
 
   @IsDateString()
   @IsOptional()
+  startDate?: string;
+
+  @IsDateString()
+  @IsOptional()
   dueDate?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  sortOrder?: number;
 }
 
 export class UpdateProjectTaskDto {
@@ -66,11 +105,47 @@ export class UpdateProjectTaskDto {
   @IsOptional()
   status?: TaskStatus;
 
+  @IsEnum(TaskPhase)
+  @IsOptional()
+  phase?: TaskPhase | null;
+
   @IsString()
   @IsOptional()
   assigneeId?: string | null;
 
   @IsDateString()
   @IsOptional()
+  startDate?: string | null;
+
+  @IsDateString()
+  @IsOptional()
   dueDate?: string | null;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  sortOrder?: number;
+}
+
+export class ReorderProjectTaskItemDto {
+  @IsString()
+  id!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  sortOrder!: number;
+
+  @IsEnum(TaskStatus)
+  @IsOptional()
+  status?: TaskStatus;
+}
+
+export class ReorderProjectTasksDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => ReorderProjectTaskItemDto)
+  updates!: ReorderProjectTaskItemDto[];
 }
