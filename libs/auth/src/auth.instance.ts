@@ -145,7 +145,7 @@ export const createBetterAuthInstance = (
       expiresIn: config.sessionExpiresInSeconds,
       updateAge: config.sessionUpdateAgeSeconds,
       cookieCache: {
-        enabled: true,
+        enabled: false,
       },
       // With Redis secondary storage, persist sessions in Postgres so session.userId stays FK-valid.
       storeSessionInDatabase: true,

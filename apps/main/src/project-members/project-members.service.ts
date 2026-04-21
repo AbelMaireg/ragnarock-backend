@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { ProjectMemberRole } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { PrismaService } from "@app/prisma";
 import { AddProjectMemberDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
 
@@ -18,25 +19,55 @@ export class ProjectMembersService {
 
   async add(organizationId: string, projectId: string, dto: AddProjectMemberDto) {
     await this.ensureProject(organizationId, projectId);
+    const targetUserId = await this.resolveTargetUserId(dto);
+
     const orgMembership = await this.prismaService.member.findUnique({
       where: {
-        organizationId_userId: { organizationId, userId: dto.userId },
+        organizationId_userId: { organizationId, userId: targetUserId },
       },
       select: { id: true },
     });
+
     if (!orgMembership) {
-      throw new ForbiddenException("User must belong to the organization");
+      await this.prismaService.member.create({
+        data: {
+          id: randomUUID(),
+          organizationId,
+          userId: targetUserId,
+          role: "member",
+        },
+      });
     }
+
     return this.prismaService.projectMember.upsert({
-      where: { projectId_userId: { projectId, userId: dto.userId } },
+      where: { projectId_userId: { projectId, userId: targetUserId } },
       create: {
         projectId,
-        userId: dto.userId,
+        userId: targetUserId,
         role: dto.role,
       },
       update: { role: dto.role },
       include: { user: { select: { id: true, name: true, email: true, image: true } } },
     });
+  }
+
+  private async resolveTargetUserId(dto: AddProjectMemberDto): Promise<string> {
+    if (dto.userId) {
+      return dto.userId;
+    }
+
+    if (!dto.email) {
+      throw new ForbiddenException("Either userId or email is required");
+    }
+
+    const user = await this.prismaService.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new NotFoundException("No account found for that email");
+    }
+    return user.id;
   }
 
   async updateRole(

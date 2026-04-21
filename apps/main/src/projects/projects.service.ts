@@ -22,13 +22,18 @@ function groupByCountAll(row: { _count: unknown }): number {
 export class ProjectsService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async list(organizationId: string, query: ListProjectsQueryDto): Promise<PaginatedData<ProjectListItem>> {
+  async list(
+    organizationId: string,
+    userId: string,
+    query: ListProjectsQueryDto,
+  ): Promise<PaginatedData<ProjectListItem>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const skip = (page - 1) * limit;
 
     const where = {
       organizationId,
+      members: { some: { userId } },
       status: query.status,
       ...(query.search
         ? {

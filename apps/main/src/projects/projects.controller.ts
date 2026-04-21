@@ -15,8 +15,12 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  list(@CurrentOrganization() organizationId: string, @Query() query: ListProjectsQueryDto) {
-    return this.projectsService.list(organizationId, query);
+  list(
+    @CurrentOrganization() organizationId: string,
+    @CurrentUser("id") userId: string,
+    @Query() query: ListProjectsQueryDto,
+  ) {
+    return this.projectsService.list(organizationId, userId, query);
   }
 
   @Post()
