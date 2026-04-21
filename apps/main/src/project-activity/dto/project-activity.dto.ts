@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsInt, IsOptional, Min } from "class-validator";
+import { IsInt, IsOptional, IsString, Min } from "class-validator";
 
 export class ListProjectActivityQueryDto {
   @Type(() => Number)
@@ -13,4 +13,16 @@ export class ListProjectActivityQueryDto {
   @Min(1)
   @IsOptional()
   limit?: number = 20;
+
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @IsString()
+  @IsOptional()
+  entityType?: string;
+
+  @IsString()
+  @IsOptional()
+  action?: string;
 }

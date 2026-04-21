@@ -10,17 +10,47 @@ export class ProjectActivityService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
+    const search = query.search?.trim();
+
+    const where = {
+      projectId,
+      ...(query.entityType
+        ? { entityType: { equals: query.entityType.trim(), mode: "insensitive" as const } }
+        : {}),
+      ...(query.action
+        ? { action: { contains: query.action.trim(), mode: "insensitive" as const } }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { action: { contains: search, mode: "insensitive" as const } },
+              { entityType: { contains: search, mode: "insensitive" as const } },
+              { entityId: { contains: search, mode: "insensitive" as const } },
+              {
+                actor: {
+                  is: {
+                    OR: [
+                      { name: { contains: search, mode: "insensitive" as const } },
+                      { email: { contains: search, mode: "insensitive" as const } },
+                    ],
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
 
     const [data, totalItems] = await this.prismaService.$transaction([
       this.prismaService.projectActivity.findMany({
-        where: { projectId },
+        where,
         skip,
         take: limit,
         include: { actor: { select: { id: true, name: true, email: true } } },
         orderBy: { createdAt: "desc" },
       }),
       this.prismaService.projectActivity.count({
-        where: { projectId },
+        where,
       }),
     ]);
 
