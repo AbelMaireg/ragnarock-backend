@@ -11,6 +11,7 @@ import nodemailerConfig from "./nodemailer.config";
 import redisEmailQueueConfig from "./redis-email-queue.config";
 import s3Config from "./s3.config";
 import typesenseConfig from "./typesense.config";
+import integrationsConfig from "./integrations.config";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import typesenseConfig from "./typesense.config";
         brevoConfig,
         redisEmailQueueConfig,
         typesenseConfig,
+        integrationsConfig,
       ],
       envFilePath: [
         `.env.${process.env.NODE_ENV ?? "development"}.local`,

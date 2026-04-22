@@ -53,6 +53,25 @@ enum DocumentationStatus {
 }
 
 /// Industry-standard doc kinds (abbreviations as enum members).
+enum IntegrationProviderKey {
+    linear
+    figma
+    cursor_workspace
+}
+
+enum IntegrationConnectionStatus {
+    active
+    error
+    disconnected
+    pending
+}
+
+enum IntegrationAuthMode {
+    pat
+    oauth2
+    api_key
+}
+
 enum DocumentationType {
     brd
     prd
@@ -109,6 +128,8 @@ model User {
     createdDocs      ProjectDocumentation[] @relation("ProjectDocumentationAuthor")
     createdRequirements ProjectRequirement[] @relation("ProjectRequirementAuthor")
     projectActivities ProjectActivity[] @relation("ProjectActivityActor")
+    integrationConnectionsCreated IntegrationConnection[] @relation("IntegrationConnectionCreator")
+    skillsAuthored                    Skill[]                 @relation("SkillAuthor")
 
     @@map("user")
 }
@@ -182,8 +203,9 @@ model Organization {
     createdAt   DateTime     @default(now())
     members     Member[]
     invitations Invitation[]
-    teams       Team[]
-    projects    Project[]
+    teams                   Team[]
+    projects                Project[]
+    integrationConnections IntegrationConnection[]
 
     @@map("organization")
 }
@@ -279,6 +301,7 @@ model Project {
     documentations ProjectDocumentation[]
     requirements   ProjectRequirement[]
     activities     ProjectActivity[]
+    skills         Skill[]
 
     @@index([organizationId])
     @@index([status])
@@ -381,4 +404,44 @@ model ProjectActivity {
     @@index([projectId, createdAt])
     @@index([actorId])
     @@map("projectActivity")
+}
+
+model IntegrationConnection {
+    id                    String                      @id @default(cuid())
+    organizationId      String
+    provider            IntegrationProviderKey
+    authMode            IntegrationAuthMode         @default(pat)
+    status              IntegrationConnectionStatus @default(pending)
+    encryptedCredentials String                     @db.Text
+    lastError           String?                    @db.Text
+    lastVerifiedAt      DateTime?
+    createdByUserId     String
+    createdAt           DateTime                   @default(now())
+    updatedAt           DateTime                   @updatedAt
+    organization        Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    creator               User                      @relation("IntegrationConnectionCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+    @@unique([organizationId, provider])
+    @@index([organizationId])
+    @@index([createdByUserId])
+    @@map("integrationConnection")
+}
+
+model Skill {
+    id           String   @id @default(cuid())
+    projectId    String
+    title        String
+    slug         String
+    summary      String?
+    bodyMarkdown String   @db.Text
+    createdBy    String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    author       User     @relation("SkillAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
+
+    @@unique([projectId, slug])
+    @@index([projectId])
+    @@index([createdBy])
+    @@map("skill")
 }

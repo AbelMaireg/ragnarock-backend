@@ -8,7 +8,9 @@ import { TypesenseModule } from "@app/typesense";
 import { UploaderModule } from "@app/uploader";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { IntegrationsModule } from "./integrations/integrations.module";
 import { ProjectActivityModule } from "./project-activity/project-activity.module";
+import { ProjectSkillsModule } from "./project-skills/project-skills.module";
 import { ProjectDocumentationsModule } from "./project-documentations/project-documentations.module";
 import { ProjectMembersModule } from "./project-members/project-members.module";
 import { ProjectRequirementsModule } from "./project-requirements/project-requirements.module";
@@ -32,6 +34,8 @@ import { UsersService } from "./users/users.service";
     ProjectDocumentationsModule,
     ProjectRequirementsModule,
     ProjectActivityModule,
+    ProjectSkillsModule,
+    IntegrationsModule,
   ],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
