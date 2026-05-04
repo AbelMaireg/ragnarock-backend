@@ -103,6 +103,11 @@ enum RequirementStatus {
     implemented
 }
 
+enum AiChatMessageRole {
+    user
+    assistant
+}
+
 model User {
     id               String       @id
     name             String?
@@ -130,6 +135,8 @@ model User {
     projectActivities ProjectActivity[] @relation("ProjectActivityActor")
     integrationConnectionsCreated IntegrationConnection[] @relation("IntegrationConnectionCreator")
     skillsAuthored                    Skill[]                 @relation("SkillAuthor")
+    createdAiChatSessions          ProjectAiChatSession[]    @relation("ProjectAiChatSessionAuthor")
+    createdProjectSpecifications   ProjectSpecification[]    @relation("ProjectSpecificationAuthor")
 
     @@map("user")
 }
@@ -300,8 +307,10 @@ model Project {
     tasks          ProjectTask[]
     documentations ProjectDocumentation[]
     requirements   ProjectRequirement[]
-    activities     ProjectActivity[]
-    skills         Skill[]
+    activities              ProjectActivity[]
+    skills                  Skill[]
+    aiChatSessions          ProjectAiChatSession[]
+    projectSpecifications     ProjectSpecification[]
 
     @@index([organizationId])
     @@index([status])
@@ -387,6 +396,55 @@ model ProjectRequirement {
     @@index([createdBy])
     @@index([status])
     @@map("projectRequirement")
+}
+
+model ProjectAiChatSession {
+    id             String                 @id @default(cuid())
+    projectId      String
+    createdBy      String
+    title          String?
+    createdAt      DateTime               @default(now())
+    updatedAt      DateTime               @updatedAt
+    project        Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    author         User                   @relation("ProjectAiChatSessionAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
+    messages       ProjectAiChatMessage[]
+    specifications ProjectSpecification[]
+
+    @@index([projectId])
+    @@index([createdBy])
+    @@map("projectAiChatSession")
+}
+
+model ProjectAiChatMessage {
+    id        String           @id @default(cuid())
+    sessionId String
+    role      AiChatMessageRole
+    content   String           @db.Text
+    payload   Json?
+    createdAt DateTime         @default(now())
+    session   ProjectAiChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+    @@index([sessionId, createdAt])
+    @@map("projectAiChatMessage")
+}
+
+model ProjectSpecification {
+    id             String               @id @default(cuid())
+    projectId      String
+    chatSessionId  String?
+    createdBy      String
+    title          String?
+    payload        Json
+    createdAt      DateTime             @default(now())
+    updatedAt      DateTime             @updatedAt
+    project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    chatSession    ProjectAiChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: SetNull)
+    author         User                 @relation("ProjectSpecificationAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
+
+    @@index([projectId])
+    @@index([chatSessionId])
+    @@index([createdBy])
+    @@map("projectSpecification")
 }
 
 model ProjectActivity {

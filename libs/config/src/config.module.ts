@@ -12,6 +12,7 @@ import redisEmailQueueConfig from "./redis-email-queue.config";
 import s3Config from "./s3.config";
 import typesenseConfig from "./typesense.config";
 import integrationsConfig from "./integrations.config";
+import aiAgentConfig from "./ai-agent.config";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import integrationsConfig from "./integrations.config";
         redisEmailQueueConfig,
         typesenseConfig,
         integrationsConfig,
+        aiAgentConfig,
       ],
       envFilePath: [
         `.env.${process.env.NODE_ENV ?? "development"}.local`,

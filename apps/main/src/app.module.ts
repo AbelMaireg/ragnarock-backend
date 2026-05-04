@@ -8,6 +8,7 @@ import { TypesenseModule } from "@app/typesense";
 import { UploaderModule } from "@app/uploader";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { AiRequirementsModule } from "./ai-requirements/ai-requirements.module";
 import { IntegrationsModule } from "./integrations/integrations.module";
 import { ProjectActivityModule } from "./project-activity/project-activity.module";
 import { ProjectSkillsModule } from "./project-skills/project-skills.module";
@@ -36,6 +37,7 @@ import { UsersService } from "./users/users.service";
     ProjectActivityModule,
     ProjectSkillsModule,
     IntegrationsModule,
+    AiRequirementsModule,
   ],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
