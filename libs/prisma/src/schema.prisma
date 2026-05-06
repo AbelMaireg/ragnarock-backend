@@ -130,6 +130,7 @@ model User {
     projectActivities ProjectActivity[] @relation("ProjectActivityActor")
     integrationConnectionsCreated IntegrationConnection[] @relation("IntegrationConnectionCreator")
     skillsAuthored                    Skill[]                 @relation("SkillAuthor")
+    projectRepositoriesLinked       ProjectRepository[]     @relation("ProjectRepositoryLinker")
 
     @@map("user")
 }
@@ -302,6 +303,7 @@ model Project {
     requirements   ProjectRequirement[]
     activities     ProjectActivity[]
     skills         Skill[]
+    repositories   ProjectRepository[]
 
     @@index([organizationId])
     @@index([status])
@@ -444,4 +446,33 @@ model Skill {
     @@index([projectId])
     @@index([createdBy])
     @@map("skill")
+}
+
+/// Linked GitHub repository for a project (metadata cached; commits/PRs fetched live).
+model ProjectRepository {
+    id               String    @id @default(cuid())
+    projectId        String
+    project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    /// GitHub numeric repository id (immutable across renames).
+    githubRepoId     String
+    owner            String
+    name             String
+    fullName         String
+    description      String?
+    /// GitHub visibility: public | private | internal
+    visibility       String
+    defaultBranch    String
+    htmlUrl          String
+    stargazersCount  Int       @default(0)
+    pushedAt         DateTime?
+    cachedAt         DateTime  @default(now())
+    linkedByUserId   String
+    linkedByUser     User      @relation("ProjectRepositoryLinker", fields: [linkedByUserId], references: [id], onDelete: Restrict)
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
+
+    @@unique([projectId, githubRepoId])
+    @@index([projectId])
+    @@index([linkedByUserId])
+    @@map("projectRepository")
 }
