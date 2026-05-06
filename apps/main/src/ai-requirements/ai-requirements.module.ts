@@ -1,23 +1,26 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "@app/prisma";
+import { UploaderModule } from "@app/uploader";
 import { ProjectAuthModule } from "../project-auth/project-auth.module";
-import { AiAgentHttpService } from "./ai-agent-http.service";
 import { AiChatBroadcastService } from "./ai-chat-broadcast.service";
 import { AiChatGateway } from "./ai-chat.gateway";
 import { AiChatSessionService } from "./ai-chat-session.service";
 import { AiChatTurnService } from "./ai-chat-turn.service";
+import { AiRequirementsQueueProducer } from "./ai-requirements-queue.producer";
+import { AiRequirementsResultConsumer } from "./ai-requirements-result.consumer";
 import { AiRequirementsController } from "./ai-requirements.controller";
 import { ProjectSpecificationsController } from "./project-specifications.controller";
 import { ProjectSpecificationsService } from "./project-specifications.service";
 
 @Module({
-  imports: [PrismaModule, ProjectAuthModule],
+  imports: [PrismaModule, ProjectAuthModule, UploaderModule],
   controllers: [AiRequirementsController, ProjectSpecificationsController],
   providers: [
-    AiAgentHttpService,
     AiChatBroadcastService,
     AiChatSessionService,
     AiChatTurnService,
+    AiRequirementsQueueProducer,
+    AiRequirementsResultConsumer,
     ProjectSpecificationsService,
     AiChatGateway,
   ],

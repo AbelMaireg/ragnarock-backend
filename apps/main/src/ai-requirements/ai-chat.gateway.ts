@@ -188,7 +188,7 @@ export class AiChatGateway implements OnGatewayInit {
         throw new NotFoundException("Chat session not found");
       }
 
-      await this.turnService.executeTextOrUrlTurn({
+      const queued = await this.turnService.executeTextOrUrlTurn({
         projectId: chatSession.projectId,
         organizationId,
         userId,
@@ -197,7 +197,7 @@ export class AiChatGateway implements OnGatewayInit {
         type,
       });
 
-      return { ok: true as const };
+      return { ok: true as const, ...queued };
     } catch (e) {
       const message =
         e instanceof HttpException

@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Query,
@@ -68,6 +70,7 @@ export class AiRequirementsController {
   @UseGuards(ProjectRoleGuard)
   @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
   @Post("requirements")
+  @HttpCode(HttpStatus.ACCEPTED)
   submitRequirements(
     @Param("projectId") projectId: string,
     @CurrentOrganization() organizationId: string,
@@ -87,6 +90,7 @@ export class AiRequirementsController {
   @UseGuards(ProjectRoleGuard)
   @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
   @Post("requirements/upload")
+  @HttpCode(HttpStatus.ACCEPTED)
   @UseInterceptors(
     FileInterceptor("file", {
       limits: { fileSize: 15 * 1024 * 1024 },

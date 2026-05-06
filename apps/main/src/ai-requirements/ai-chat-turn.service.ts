@@ -4,12 +4,18 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import type { Express } from "express";
 import { AiChatMessageRole, type Prisma, ProjectMemberRole } from "@prisma/client";
 import { PrismaService } from "@app/prisma";
+import { UploaderService } from "@app/uploader";
 import { ProjectAccessService } from "../project-auth/project-access.service";
-import { AiAgentHttpService } from "./ai-agent-http.service";
 import { AiChatBroadcastService } from "./ai-chat-broadcast.service";
+import { AiRequirementsQueueProducer } from "./ai-requirements-queue.producer";
+import {
+  AiRequirementsAcceptedResponse,
+  AiRequirementsQueuedUpload,
+} from "./ai-requirements-queue.types";
 import {
   type AgentOrchestratorResponse,
   parseAgentResponse,
@@ -27,8 +33,9 @@ export class AiChatTurnService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly projectAccessService: ProjectAccessService,
-    private readonly aiAgentHttpService: AiAgentHttpService,
     private readonly broadcastService: AiChatBroadcastService,
+    private readonly queueProducer: AiRequirementsQueueProducer,
+    private readonly uploaderService: UploaderService,
   ) {}
 
   async executeTextOrUrlTurn(params: {
@@ -38,7 +45,7 @@ export class AiChatTurnService {
     sessionId: string;
     input: string;
     type: "text" | "url";
-  }): Promise<AiTurnCompletedPayload> {
+  }): Promise<AiRequirementsAcceptedResponse> {
     await this.ensureSessionAndContributor(params);
 
     const conversation_history = await this.conversationHistoryBeforeNewTurn(params.sessionId);
@@ -56,20 +63,22 @@ export class AiChatTurnService {
       userMessageId: userMessage.id,
     });
 
-    const raw = await this.aiAgentHttpService.postRequirementsJson({
-      project_id: params.projectId,
-      input: params.input.trim(),
-      type: params.type,
-      conversation_history,
-    });
-
-    return this.finalizeAssistantTurn({
+    const jobId = randomUUID();
+    await this.queueProducer.enqueue({
+      jobId,
       projectId: params.projectId,
+      organizationId: params.organizationId,
       userId: params.userId,
       sessionId: params.sessionId,
       userMessageId: userMessage.id,
-      raw,
+      input: params.input.trim(),
+      type: params.type,
+      conversationHistory: conversation_history,
+      attempts: 0,
+      queuedAt: new Date().toISOString(),
     });
+
+    return { jobId, userMessageId: userMessage.id, status: "queued" };
   }
 
   async executeUploadTurn(params: {
@@ -78,10 +87,11 @@ export class AiChatTurnService {
     userId: string;
     sessionId: string;
     file: Express.Multer.File;
-  }): Promise<AiTurnCompletedPayload> {
+  }): Promise<AiRequirementsAcceptedResponse> {
     await this.ensureSessionAndContributor(params);
 
     const conversation_history = await this.conversationHistoryBeforeNewTurn(params.sessionId);
+    const upload = await this.storeUpload(params.file);
 
     const label = `[Uploaded file: ${params.file.originalname}]`;
     const userMessage = await this.prismaService.projectAiChatMessage.create({
@@ -97,21 +107,23 @@ export class AiChatTurnService {
       userMessageId: userMessage.id,
     });
 
-    const formData = new FormData();
-    formData.set("project_id", params.projectId);
-    formData.set("conversation_history_json", JSON.stringify(conversation_history));
-    const blob = new Blob([new Uint8Array(params.file.buffer)], { type: params.file.mimetype });
-    formData.set("file", blob, params.file.originalname);
-
-    const raw = await this.aiAgentHttpService.postRequirementsMultipart(formData);
-
-    return this.finalizeAssistantTurn({
+    const jobId = randomUUID();
+    await this.queueProducer.enqueue({
+      jobId,
       projectId: params.projectId,
+      organizationId: params.organizationId,
       userId: params.userId,
       sessionId: params.sessionId,
       userMessageId: userMessage.id,
-      raw,
+      type: "upload",
+      input: label,
+      conversationHistory: conversation_history,
+      upload,
+      attempts: 0,
+      queuedAt: new Date().toISOString(),
     });
+
+    return { jobId, userMessageId: userMessage.id, status: "queued" };
   }
 
   private async ensureSessionAndContributor(params: {
@@ -156,7 +168,7 @@ export class AiChatTurnService {
     }));
   }
 
-  private async finalizeAssistantTurn(params: {
+  async completeQueuedTurn(params: {
     projectId: string;
     userId: string;
     sessionId: string;
@@ -218,6 +230,38 @@ export class AiChatTurnService {
     );
 
     return completed;
+  }
+
+  failQueuedTurn(params: {
+    projectId: string;
+    sessionId: string;
+    userMessageId: string;
+    jobId: string;
+    error: string;
+  }): void {
+    this.broadcastService.emitToProjectSession(params.projectId, params.sessionId, "turn_failed", {
+      jobId: params.jobId,
+      userMessageId: params.userMessageId,
+      error: params.error,
+    });
+  }
+
+  private async storeUpload(file: Express.Multer.File): Promise<AiRequirementsQueuedUpload> {
+    const filename = `${randomUUID()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const uploaded = await this.uploaderService.upload({
+      buffer: file.buffer,
+      filename,
+      contentType: file.mimetype,
+      directory: "ai-requirements",
+    });
+
+    return {
+      key: uploaded.key,
+      location: uploaded.location,
+      filename: file.originalname,
+      contentType: file.mimetype,
+      size: file.size,
+    };
   }
 }
 

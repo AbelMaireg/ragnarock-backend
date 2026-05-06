@@ -8,6 +8,7 @@ import databaseConfig from "./database.config";
 import filesystemConfig from "./filesystem.config";
 import mailConfig from "./mail.config";
 import nodemailerConfig from "./nodemailer.config";
+import redisAiRequirementsQueueConfig from "./redis-ai-requirements-queue.config";
 import redisEmailQueueConfig from "./redis-email-queue.config";
 import s3Config from "./s3.config";
 import typesenseConfig from "./typesense.config";
@@ -29,6 +30,7 @@ import aiAgentConfig from "./ai-agent.config";
         mailConfig,
         nodemailerConfig,
         brevoConfig,
+        redisAiRequirementsQueueConfig,
         redisEmailQueueConfig,
         typesenseConfig,
         integrationsConfig,
