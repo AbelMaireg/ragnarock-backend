@@ -7,6 +7,7 @@ export { default as databaseConfig } from "./database.config";
 export { default as filesystemConfig } from "./filesystem.config";
 export { default as mailConfig } from "./mail.config";
 export { default as nodemailerConfig } from "./nodemailer.config";
+export { default as redisAiRequirementsQueueConfig } from "./redis-ai-requirements-queue.config";
 export { default as redisEmailQueueConfig } from "./redis-email-queue.config";
 export { default as s3Config } from "./s3.config";
 export { default as typesenseConfig } from "./typesense.config";

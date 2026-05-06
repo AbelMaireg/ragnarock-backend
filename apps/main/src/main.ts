@@ -2,12 +2,13 @@ import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { setupApiDocs } from "@app/docs";
-import { LoggerService } from "@app/logger";
+import { LoggerService, RequestLoggingInterceptor } from "@app/logger";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(await app.resolve(LoggerService));
+  app.useGlobalInterceptors(app.get(RequestLoggingInterceptor));
   app.enableCors({
     origin: true,
     credentials: true,
