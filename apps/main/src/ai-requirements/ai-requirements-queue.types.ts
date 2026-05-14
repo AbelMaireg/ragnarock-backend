@@ -1,4 +1,4 @@
-import type { AgentOrchestratorResponse } from "./types/agent-response.types";
+import type { AgentOrchestratorResponse, AgentPartialSrs } from "./types/agent-response.types";
 
 export type AiConversationTurn = {
   role: "assistant" | "user";
@@ -13,6 +13,11 @@ export type AiRequirementsQueuedUpload = {
   size: number;
 };
 
+export type AiProjectContext = {
+  name: string;
+  description?: string | null;
+};
+
 export type AiRequirementsQueuedJob = {
   jobId: string;
   projectId: string;
@@ -24,6 +29,8 @@ export type AiRequirementsQueuedJob = {
   input: string;
   conversationHistory: AiConversationTurn[];
   upload?: AiRequirementsQueuedUpload;
+  partialSrs?: AgentPartialSrs;
+  projectContext?: AiProjectContext;
   attempts: number;
   queuedAt: string;
 };

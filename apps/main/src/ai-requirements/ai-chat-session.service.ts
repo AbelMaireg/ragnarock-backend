@@ -34,6 +34,7 @@ export class AiChatSessionService {
           author: { select: { id: true, name: true, email: true } },
           _count: { select: { messages: true } },
         },
+        // partialSrs and srsProgress are selected by default (scalar fields)
       }),
       this.prismaService.projectAiChatSession.count({ where: { projectId } }),
     ]);

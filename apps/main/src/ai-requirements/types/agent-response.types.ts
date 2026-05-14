@@ -1,7 +1,21 @@
-/** Responses from FastAPI /ai/requirements (discriminator `status`). */
+/** Responses from FastAPI agent (discriminator `status`). */
+
+export type AgentPartialSrs = {
+  project_name?: string | null;
+  summary?: string | null;
+  features?: { name: string; description: string }[];
+  user_roles?: string[];
+  functional_requirements?: string[];
+  non_functional_requirements?: string[];
+  user_stories?: { role: string; goal: string; benefit: string }[];
+  acceptance_criteria?: string[];
+  out_of_scope?: string[];
+};
+
 export type AgentClarificationResponse = {
   status: "needs_clarification";
   questions: string[];
+  partial_srs: AgentPartialSrs;
 };
 
 export type AgentRequirementResponse = {
@@ -30,10 +44,31 @@ export function parseAgentResponse(raw: unknown): AgentOrchestratorResponse {
     if (!Array.isArray(questions) || !questions.every((q) => typeof q === "string")) {
       throw new Error("Invalid clarification response");
     }
-    return { status: "needs_clarification", questions };
+    return {
+      status: "needs_clarification",
+      questions,
+      partial_srs: (o.partial_srs as AgentPartialSrs) ?? {},
+    };
   }
   if (status === "complete") {
     return raw as AgentRequirementResponse;
   }
   throw new Error(`Unknown agent status: ${String(status)}`);
+}
+
+/** Compute 0-100 progress from a partial SRS object. */
+export function computeSrsProgress(partial: AgentPartialSrs | null | undefined): number {
+  if (!partial) return 0;
+  const fields: (keyof AgentPartialSrs)[] = [
+    "project_name", "summary", "features", "user_roles",
+    "functional_requirements", "non_functional_requirements",
+    "user_stories", "acceptance_criteria", "out_of_scope",
+  ];
+  const filled = fields.filter((f) => {
+    const v = partial[f];
+    if (v === null || v === undefined) return false;
+    if (Array.isArray(v)) return v.length > 0;
+    return Boolean(v);
+  });
+  return Math.round((filled.length / fields.length) * 100);
 }
