@@ -72,6 +72,32 @@ enum IntegrationAuthMode {
     api_key
 }
 
+enum LinearSyncDirection {
+    import
+    export
+    bidirectional
+}
+
+enum LinearSyncRunType {
+    import
+    export
+    sync
+}
+
+enum LinearSyncRunStatus {
+    pending
+    running
+    completed
+    failed
+    partial
+}
+
+enum LinearProjectSyncStatus {
+    idle
+    syncing
+    error
+}
+
 enum DocumentationType {
     brd
     prd
@@ -313,6 +339,9 @@ model Project {
     aiChatSessions        ProjectAiChatSession[]
     projectSpecifications ProjectSpecification[]
     repositories          ProjectRepository[]
+    linearMapping         LinearProjectMapping?
+    linearIssueLinks      LinearIssueLink[]
+    linearSyncRuns        LinearSyncRun[]
 
     @@index([organizationId])
     @@index([status])
@@ -346,11 +375,13 @@ model ProjectTask {
     phase       TaskPhase?
     startDate   DateTime?
     dueDate     DateTime?
+    labels      String[]     @default([])
     sortOrder   Int          @default(0)
     createdAt   DateTime     @default(now())
     updatedAt   DateTime     @updatedAt
     project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
     assignee    User?        @relation("ProjectTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+    linearLink  LinearIssueLink?
 
     @@index([projectId])
     @@index([assigneeId])
@@ -533,4 +564,74 @@ model ProjectRepository {
     @@index([projectId])
     @@index([linkedByUserId])
     @@map("projectRepository")
+}
+
+/// Links an app project to a Linear project/team for sync.
+model LinearProjectMapping {
+    id                   String                  @id @default(cuid())
+    projectId            String                  @unique
+    linearProjectId      String
+    linearTeamId         String
+    linearProjectName    String?
+    defaultLinearStateId String?
+    stateMap             Json?
+    lastSyncCursor       DateTime?
+    lastSyncAt           DateTime?
+    lastImportAt         DateTime?
+    lastExportAt         DateTime?
+    syncStatus           LinearProjectSyncStatus @default(idle)
+    lastSyncError        String?                 @db.Text
+    autoSyncEnabled      Boolean                 @default(false)
+    createdAt            DateTime                @default(now())
+    updatedAt            DateTime                @updatedAt
+    project              Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@index([linearProjectId])
+    @@index([autoSyncEnabled, syncStatus])
+    @@map("linearProjectMapping")
+}
+
+/// Maps a local task to a Linear issue with sync metadata.
+model LinearIssueLink {
+    id                    String               @id @default(cuid())
+    projectId             String
+    projectTaskId         String               @unique
+    linearIssueId         String
+    linearIssueIdentifier String?
+    linearUpdatedAt       DateTime?
+    localUpdatedAt        DateTime?
+    syncDirection         LinearSyncDirection?
+    importedFromLinear    Boolean              @default(false)
+    syncedToLinear        Boolean              @default(false)
+    externalSource        String               @default("linear")
+    lastSyncedAt          DateTime?
+    lastSyncError         String?
+    linearStateId         String?
+    labelIds              Json?
+    createdAt             DateTime             @default(now())
+    updatedAt             DateTime             @updatedAt
+    project               Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectTask           ProjectTask          @relation(fields: [projectTaskId], references: [id], onDelete: Cascade)
+
+    @@unique([projectId, linearIssueId])
+    @@index([projectId])
+    @@index([linearIssueId])
+    @@index([lastSyncedAt])
+    @@map("linearIssueLink")
+}
+
+/// Audit log for Linear sync operations.
+model LinearSyncRun {
+    id         String              @id @default(cuid())
+    projectId  String
+    type       LinearSyncRunType
+    status     LinearSyncRunStatus @default(pending)
+    startedAt  DateTime            @default(now())
+    finishedAt DateTime?
+    stats      Json?
+    error      String?             @db.Text
+    project    Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@index([projectId, startedAt(sort: Desc)])
+    @@map("linearSyncRun")
 }

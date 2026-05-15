@@ -10,6 +10,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AiRequirementsModule } from "./ai-requirements/ai-requirements.module";
 import { IntegrationsModule } from "./integrations/integrations.module";
+import { LinearSyncModule } from "./linear-sync/linear-sync.module";
 import { ProjectActivityModule } from "./project-activity/project-activity.module";
 import { ProjectSkillsModule } from "./project-skills/project-skills.module";
 import { ProjectDocumentationsModule } from "./project-documentations/project-documentations.module";
@@ -39,6 +40,7 @@ import { UsersService } from "./users/users.service";
     ProjectActivityModule,
     ProjectSkillsModule,
     IntegrationsModule,
+    LinearSyncModule,
     AiRequirementsModule,
   ],
   controllers: [AppController, UsersController],

@@ -2,8 +2,13 @@
  * Minimal Linear GraphQL client for PAT verification.
  * @see https://developers.linear.app/docs/graphql/working-with-the-graphql-api
  */
-export async function verifyLinearPat(pat: string): Promise<{ ok: true; viewerId: string } | { ok: false; message: string }> {
-  const res = await fetch("https://api.linear.app/graphql", {
+const DEFAULT_LINEAR_API_URL = "https://api.linear.app/graphql";
+
+export async function verifyLinearPat(
+  pat: string,
+  apiUrl = process.env.LINEAR_API_URL ?? DEFAULT_LINEAR_API_URL,
+): Promise<{ ok: true; viewerId: string } | { ok: false; message: string }> {
+  const res = await fetch(apiUrl, {
     method: "POST",
     headers: {
       Authorization: pat,

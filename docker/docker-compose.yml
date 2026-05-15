@@ -65,6 +65,9 @@ services:
     working_dir: /app
     env_file:
       - ../.env
+    environment:
+      # Inside Compose, Redis is not on localhost — override host .env when present.
+      REDIS_HOST: redis
     ports:
       - "8000:3000"
     volumes:
