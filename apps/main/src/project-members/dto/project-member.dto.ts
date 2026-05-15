@@ -1,5 +1,5 @@
 import { ProjectMemberRole, ProjectPersona } from "@prisma/client";
-import { IsEmail, IsEnum, IsOptional, IsString, ValidateIf } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString, ValidateIf } from "class-validator";
 
 export class AddProjectMemberDto {
   @ValidateIf((value: AddProjectMemberDto) => !value.email)
@@ -15,9 +15,10 @@ export class AddProjectMemberDto {
   @IsEnum(ProjectMemberRole)
   role!: ProjectMemberRole;
 
-  @IsEnum(ProjectPersona)
+  @IsArray()
+  @IsEnum(ProjectPersona, { each: true })
   @IsOptional()
-  persona?: ProjectPersona;
+  personas?: ProjectPersona[];
 }
 
 export class UpdateProjectMemberRoleDto {
@@ -25,7 +26,8 @@ export class UpdateProjectMemberRoleDto {
   role!: ProjectMemberRole;
 }
 
-export class UpdateProjectMemberPersonaDto {
-  @IsEnum(ProjectPersona)
-  persona!: ProjectPersona;
+export class UpdateProjectMemberPersonasDto {
+  @IsArray()
+  @IsEnum(ProjectPersona, { each: true })
+  personas!: ProjectPersona[];
 }

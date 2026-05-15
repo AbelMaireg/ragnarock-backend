@@ -161,7 +161,7 @@ export class AiChatTurnService {
       }),
       this.prismaService.projectMember.findUnique({
         where: { projectId_userId: { projectId: params.projectId, userId: params.userId } },
-        select: { role: true, persona: true },
+        select: { role: true, personas: true },
       }),
     ]);
 
@@ -177,19 +177,21 @@ export class AiChatTurnService {
       throw new ForbiddenException("Viewers cannot run the AI agent");
     }
 
-    // Stakeholders can view but not trigger agents
-    if (member.persona === ProjectPersona.stakeholder) {
+    // Stakeholders-only cannot trigger agents (if all personas are stakeholder)
+    const personas = member.personas ?? [];
+    const nonStakeholderPersonas = personas.filter((p) => p !== ProjectPersona.stakeholder);
+    if (personas.length > 0 && nonStakeholderPersonas.length === 0) {
       throw new ForbiddenException("Stakeholders cannot trigger AI agents");
     }
 
-    // Persona → capability check: developers only can use developer_intelligence agent.
+    // Persona → capability check: developer_intelligence requires at least one developer persona
     const agentType = chatSession.agentType;
-    if (agentType === "developer_intelligence" && member.persona !== ProjectPersona.developer) {
+    if (agentType === "developer_intelligence" && !personas.includes(ProjectPersona.developer)) {
       throw new ForbiddenException("Only developers can use the Developer Intelligence agent");
     }
 
     return {
-      userPersona: member.persona ? (member.persona as unknown as UserPersona) : undefined,
+      userPersona: nonStakeholderPersonas[0] ? (nonStakeholderPersonas[0] as unknown as UserPersona) : undefined,
       agentType,
     };
   }

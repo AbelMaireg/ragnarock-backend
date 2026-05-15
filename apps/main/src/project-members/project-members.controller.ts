@@ -15,7 +15,7 @@ import { CurrentOrganization } from "../project-auth/current-organization.decora
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
-import { AddProjectMemberDto, UpdateProjectMemberPersonaDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
+import { AddProjectMemberDto, UpdateProjectMemberPersonasDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
 import { ProjectMembersService } from "./project-members.service";
 
 @Auth()
@@ -63,18 +63,16 @@ export class ProjectMembersController {
     return this.projectMembersService.remove(organizationId, projectId, userId);
   }
 
-  // Any member can update their own persona; admins/owners can update anyone's
+  // Any member can update their own personas; admins/owners can update anyone's
   @Patch(":userId/persona")
-  updatePersona(
+  updatePersonas(
     @CurrentOrganization() organizationId: string,
     @Param("projectId") projectId: string,
     @Param("userId") userId: string,
     @CurrentUser("id") currentUserId: string,
-    @Body() dto: UpdateProjectMemberPersonaDto,
+    @Body() dto: UpdateProjectMemberPersonasDto,
   ) {
-    // Allow self-update or admin/owner (service only checks project exists;
-    // admin restriction is enforced via the role guard on the route below)
     void currentUserId;
-    return this.projectMembersService.updatePersona(organizationId, projectId, userId, dto);
+    return this.projectMembersService.updatePersonas(organizationId, projectId, userId, dto);
   }
 }
