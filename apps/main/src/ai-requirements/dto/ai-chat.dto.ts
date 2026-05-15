@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  IsEnum,
   IsIn,
   IsInt,
   IsOptional,
@@ -8,12 +9,17 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
+import { AgentType } from "@prisma/client";
 
 export class CreateAiChatSessionDto {
   @IsString()
   @IsOptional()
   @MaxLength(200)
   title?: string;
+
+  @IsEnum(AgentType)
+  @IsOptional()
+  agentType?: AgentType;
 }
 
 export class ListAiChatSessionsQueryDto {

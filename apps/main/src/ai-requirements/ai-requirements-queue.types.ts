@@ -18,6 +18,17 @@ export type AiProjectContext = {
   description?: string | null;
 };
 
+/** SDLC persona of the user — used by the router agent to pick the right specialist. */
+export type UserPersona =
+  | "business_owner"
+  | "developer"
+  | "qa_engineer"
+  | "project_manager"
+  | "stakeholder";
+
+/** Which specialist agent should handle the turn. */
+export type AgentType = "requirements" | "developer_advisor";
+
 export type AiRequirementsQueuedJob = {
   jobId: string;
   projectId: string;
@@ -31,6 +42,10 @@ export type AiRequirementsQueuedJob = {
   upload?: AiRequirementsQueuedUpload;
   partialSrs?: AgentPartialSrs;
   projectContext?: AiProjectContext;
+  /** Persona of the submitting user — routing hint for the FastAPI router agent. */
+  userPersona?: UserPersona;
+  /** Agent type for this session, resolved at turn-submission time. */
+  agentType: AgentType;
   attempts: number;
   queuedAt: string;
 };

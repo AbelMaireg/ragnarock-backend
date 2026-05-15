@@ -47,7 +47,7 @@ export class AiRequirementsController {
     @CurrentUser("id") userId: string,
     @Body() dto: CreateAiChatSessionDto,
   ) {
-    return this.aiChatSessionService.createSession(projectId, userId, dto.title);
+    return this.aiChatSessionService.createSession(projectId, userId, dto.title, dto.agentType);
   }
 
   @Get("chat/sessions")

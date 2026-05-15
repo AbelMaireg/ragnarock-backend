@@ -19,6 +19,19 @@ enum ProjectMemberRole {
     viewer
 }
 
+enum ProjectPersona {
+    business_owner
+    developer
+    qa_engineer
+    project_manager
+    stakeholder
+}
+
+enum AgentType {
+    requirements
+    developer_advisor
+}
+
 enum TaskStatus {
     backlog
     todo
@@ -322,14 +335,15 @@ model Project {
 }
 
 model ProjectMember {
-    id        String            @id @default(cuid())
+    id        String             @id @default(cuid())
     projectId String
     userId    String
-    role      ProjectMemberRole @default(member)
-    createdAt DateTime          @default(now())
-    updatedAt DateTime          @updatedAt
-    project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role      ProjectMemberRole  @default(member)
+    persona   ProjectPersona?
+    createdAt DateTime           @default(now())
+    updatedAt DateTime           @updatedAt
+    project   Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([projectId, userId])
     @@index([projectId])
@@ -407,6 +421,7 @@ model ProjectAiChatSession {
     projectId      String
     createdBy      String
     title          String?
+    agentType      AgentType              @default(requirements)
     partialSrs     Json?
     srsProgress    Int                    @default(0)
     createdAt      DateTime               @default(now())

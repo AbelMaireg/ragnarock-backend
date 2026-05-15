@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import type { Express } from "express";
-import { AiChatMessageRole, Prisma, ProjectMemberRole } from "@prisma/client";
+import { AgentType, AiChatMessageRole, Prisma, ProjectMemberRole, ProjectPersona } from "@prisma/client";
 import { PrismaService } from "@app/prisma";
 import { UploaderService } from "@app/uploader";
 import { ProjectAccessService } from "../project-auth/project-access.service";
@@ -16,6 +16,7 @@ import {
   AiProjectContext,
   AiRequirementsAcceptedResponse,
   AiRequirementsQueuedUpload,
+  type UserPersona,
 } from "./ai-requirements-queue.types";
 import {
   type AgentOrchestratorResponse,
@@ -49,7 +50,7 @@ export class AiChatTurnService {
     input: string;
     type: "text" | "url";
   }): Promise<AiRequirementsAcceptedResponse> {
-    await this.ensureSessionAndContributor(params);
+    const { userPersona, agentType } = await this.ensureSessionAndContributor(params);
 
     const [conversation_history, partialSrs, projectContext] = await Promise.all([
       this.conversationHistoryBeforeNewTurn(params.sessionId),
@@ -83,6 +84,8 @@ export class AiChatTurnService {
       conversationHistory: conversation_history,
       partialSrs: partialSrs ?? undefined,
       projectContext,
+      userPersona,
+      agentType,
       attempts: 0,
       queuedAt: new Date().toISOString(),
     });
@@ -97,7 +100,7 @@ export class AiChatTurnService {
     sessionId: string;
     file: Express.Multer.File;
   }): Promise<AiRequirementsAcceptedResponse> {
-    await this.ensureSessionAndContributor(params);
+    const { userPersona, agentType } = await this.ensureSessionAndContributor(params);
 
     const [conversation_history, partialSrs, upload, projectContext] = await Promise.all([
       this.conversationHistoryBeforeNewTurn(params.sessionId),
@@ -134,6 +137,8 @@ export class AiChatTurnService {
       partialSrs: partialSrs ?? undefined,
       projectContext,
       upload,
+      userPersona,
+      agentType,
       attempts: 0,
       queuedAt: new Date().toISOString(),
     });
@@ -146,11 +151,17 @@ export class AiChatTurnService {
     organizationId: string;
     userId: string;
     sessionId: string;
-  }) {
-    const chatSession = await this.prismaService.projectAiChatSession.findFirst({
-      where: { id: params.sessionId, projectId: params.projectId },
-      include: { project: { select: { organizationId: true } } },
-    });
+  }): Promise<{ userPersona: UserPersona | undefined; agentType: AgentType }> {
+    const [chatSession, member] = await Promise.all([
+      this.prismaService.projectAiChatSession.findFirst({
+        where: { id: params.sessionId, projectId: params.projectId },
+        include: { project: { select: { organizationId: true } } },
+      }),
+      this.prismaService.projectMember.findUnique({
+        where: { projectId_userId: { projectId: params.projectId, userId: params.userId } },
+        select: { role: true, persona: true },
+      }),
+    ]);
 
     if (!chatSession) {
       throw new NotFoundException("Chat session not found");
@@ -160,15 +171,27 @@ export class AiChatTurnService {
       throw new ForbiddenException("Chat session is not in the active organization");
     }
 
-    const role = await this.projectAccessService.validateProjectMembership({
-      projectId: params.projectId,
-      userId: params.userId,
-      organizationId: params.organizationId,
-    });
-
-    if (role === ProjectMemberRole.viewer) {
+    if (!member || member.role === ProjectMemberRole.viewer) {
       throw new ForbiddenException("Viewers cannot run the AI agent");
     }
+
+    // Stakeholders can view but not trigger agents
+    if (member.persona === ProjectPersona.stakeholder) {
+      throw new ForbiddenException("Stakeholders cannot trigger AI agents");
+    }
+
+    // Persona → capability check: business_owners can use requirements agent,
+    // developers can use developer_advisor. All other personas use requirements
+    // by default until their dedicated agent is built.
+    const agentType = chatSession.agentType;
+    if (agentType === AgentType.developer_advisor && member.persona !== ProjectPersona.developer) {
+      throw new ForbiddenException("Only developers can use the Developer Advisor agent");
+    }
+
+    return {
+      userPersona: member.persona ? (member.persona as unknown as UserPersona) : undefined,
+      agentType,
+    };
   }
 
   private async conversationHistoryBeforeNewTurn(sessionId: string) {
