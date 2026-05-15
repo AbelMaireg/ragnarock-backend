@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import type { Express } from "express";
-import { AgentType, AiChatMessageRole, Prisma, ProjectMemberRole, ProjectPersona } from "@prisma/client";
+import { AiChatMessageRole, Prisma, ProjectMemberRole, ProjectPersona } from "@prisma/client";
 import { PrismaService } from "@app/prisma";
 import { UploaderService } from "@app/uploader";
 import { ProjectAccessService } from "../project-auth/project-access.service";
@@ -73,6 +73,7 @@ export class AiChatTurnService {
 
     const jobId = randomUUID();
     await this.queueProducer.enqueue({
+      jobType: "chat_turn",
       jobId,
       projectId: params.projectId,
       organizationId: params.organizationId,
@@ -125,6 +126,7 @@ export class AiChatTurnService {
 
     const jobId = randomUUID();
     await this.queueProducer.enqueue({
+      jobType: "chat_turn",
       jobId,
       projectId: params.projectId,
       organizationId: params.organizationId,
@@ -151,7 +153,7 @@ export class AiChatTurnService {
     organizationId: string;
     userId: string;
     sessionId: string;
-  }): Promise<{ userPersona: UserPersona | undefined; agentType: AgentType }> {
+  }): Promise<{ userPersona: UserPersona | undefined; agentType: string }> {
     const [chatSession, member] = await Promise.all([
       this.prismaService.projectAiChatSession.findFirst({
         where: { id: params.sessionId, projectId: params.projectId },
@@ -180,12 +182,10 @@ export class AiChatTurnService {
       throw new ForbiddenException("Stakeholders cannot trigger AI agents");
     }
 
-    // Persona → capability check: business_owners can use requirements agent,
-    // developers can use developer_advisor. All other personas use requirements
-    // by default until their dedicated agent is built.
+    // Persona → capability check: developers only can use developer_intelligence agent.
     const agentType = chatSession.agentType;
-    if (agentType === AgentType.developer_advisor && member.persona !== ProjectPersona.developer) {
-      throw new ForbiddenException("Only developers can use the Developer Advisor agent");
+    if (agentType === "developer_intelligence" && member.persona !== ProjectPersona.developer) {
+      throw new ForbiddenException("Only developers can use the Developer Intelligence agent");
     }
 
     return {
@@ -235,6 +235,25 @@ export class AiChatTurnService {
     });
 
     let specificationId: string | undefined;
+
+    if (agent.status === "answer") {
+      // Developer Intelligence response — persist as assistant message only, no spec created
+      this.broadcastService.emitToProjectSession(
+        params.projectId,
+        params.sessionId,
+        "turn_completed",
+        {
+          userMessageId: params.userMessageId,
+          assistantMessageId: assistantMessage.id,
+          agent,
+        },
+      );
+      return {
+        userMessageId: params.userMessageId,
+        assistantMessageId: assistantMessage.id,
+        agent,
+      };
+    }
 
     if (agent.status === "complete") {
       const markdownContent = specToMarkdown(agent);
@@ -448,6 +467,9 @@ function assistantReadableContent(agent: AgentOrchestratorResponse): string {
     return agent.questions.length === 1
       ? agent.questions[0]
       : agent.questions.map((q, i) => `${i + 1}. ${q}`).join("\n\n");
+  }
+  if (agent.status === "answer") {
+    return agent.answer;
   }
   return `${agent.project_name}\n\n${agent.summary}`;
 }

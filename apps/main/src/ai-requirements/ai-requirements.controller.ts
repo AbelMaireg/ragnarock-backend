@@ -21,10 +21,12 @@ import { CurrentOrganization } from "../project-auth/current-organization.decora
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
+import { AiArchDocService } from "./ai-arch-doc.service";
 import { AiChatSessionService } from "./ai-chat-session.service";
 import { AiChatTurnService } from "./ai-chat-turn.service";
 import {
   CreateAiChatSessionDto,
+  GenerateArchDocDto,
   ListAiChatMessagesQueryDto,
   ListAiChatSessionsQueryDto,
   SubmitAiRequirementsDto,
@@ -37,6 +39,7 @@ export class AiRequirementsController {
   constructor(
     private readonly aiChatSessionService: AiChatSessionService,
     private readonly aiChatTurnService: AiChatTurnService,
+    private readonly aiArchDocService: AiArchDocService,
   ) {}
 
   @UseGuards(ProjectRoleGuard)
@@ -89,6 +92,25 @@ export class AiRequirementsController {
       sessionId: dto.sessionId,
       input: dto.input,
       type: dto.type,
+    });
+  }
+
+  @UseGuards(ProjectRoleGuard)
+  @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
+  @Post("arch-doc/generate")
+  @HttpCode(HttpStatus.ACCEPTED)
+  generateArchDoc(
+    @Param("projectId") projectId: string,
+    @CurrentOrganization() organizationId: string,
+    @CurrentUser("id") userId: string,
+    @Body() dto: GenerateArchDocDto,
+  ) {
+    return this.aiArchDocService.requestGeneration({
+      projectId,
+      organizationId,
+      userId,
+      docType: dto.docType,
+      layer: dto.layer,
     });
   }
 

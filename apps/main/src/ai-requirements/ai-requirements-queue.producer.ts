@@ -1,7 +1,7 @@
 import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createClient, RedisClientType } from "redis";
-import { AiRequirementsQueuedJob } from "./ai-requirements-queue.types";
+import { AiArchDocQueuedJob, AiRequirementsQueuedJob } from "./ai-requirements-queue.types";
 
 @Injectable()
 export class AiRequirementsQueueProducer implements OnModuleDestroy {
@@ -24,6 +24,14 @@ export class AiRequirementsQueueProducer implements OnModuleDestroy {
   }
 
   async enqueue(job: AiRequirementsQueuedJob): Promise<string> {
+    return this.push(job);
+  }
+
+  async enqueueArchDoc(job: AiArchDocQueuedJob): Promise<string> {
+    return this.push(job);
+  }
+
+  private async push(job: AiRequirementsQueuedJob | AiArchDocQueuedJob): Promise<string> {
     await this.ensureConnected();
 
     return this.redisClient.sendCommand<string>([

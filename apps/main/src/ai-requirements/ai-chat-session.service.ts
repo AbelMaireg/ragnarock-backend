@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { AgentType } from "@prisma/client";
 import { PrismaService } from "@app/prisma";
 import {
   ListAiChatMessagesQueryDto,
@@ -31,7 +30,7 @@ export class AiChatSessionService {
     projectId: string,
     userId: string,
     title?: string | null,
-    agentType: AgentType = AgentType.requirements,
+    agentType = "requirements",
   ) {
     return this.prismaService.projectAiChatSession.create({
       data: {

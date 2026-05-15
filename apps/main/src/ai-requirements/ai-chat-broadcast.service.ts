@@ -13,4 +13,9 @@ export class AiChatBroadcastService {
     const room = `${projectId}:${sessionId}`;
     this.server?.to(room).emit(event, payload);
   }
+
+  /** Broadcast to all sockets subscribed to any session in the project. */
+  emitToProject(projectId: string, event: string, payload: unknown) {
+    this.server?.to(projectId).emit(event, payload);
+  }
 }

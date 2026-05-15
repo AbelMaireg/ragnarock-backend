@@ -31,7 +31,17 @@ export type AgentRequirementResponse = {
   business_owner_summary: string;
 };
 
-export type AgentOrchestratorResponse = AgentClarificationResponse | AgentRequirementResponse;
+export type AgentDevIntelligenceResponse = {
+  status: "answer";
+  answer: string;
+  references: string[];
+  follow_up_suggestions: string[];
+};
+
+export type AgentOrchestratorResponse =
+  | AgentClarificationResponse
+  | AgentRequirementResponse
+  | AgentDevIntelligenceResponse;
 
 export function parseAgentResponse(raw: unknown): AgentOrchestratorResponse {
   if (!raw || typeof raw !== "object") {
@@ -39,6 +49,7 @@ export function parseAgentResponse(raw: unknown): AgentOrchestratorResponse {
   }
   const o = raw as Record<string, unknown>;
   const status = o.status;
+
   if (status === "needs_clarification") {
     const questions = o.questions;
     if (!Array.isArray(questions) || !questions.every((q) => typeof q === "string")) {
@@ -50,9 +61,22 @@ export function parseAgentResponse(raw: unknown): AgentOrchestratorResponse {
       partial_srs: (o.partial_srs as AgentPartialSrs) ?? {},
     };
   }
+
   if (status === "complete") {
     return raw as AgentRequirementResponse;
   }
+
+  if (status === "answer") {
+    return {
+      status: "answer",
+      answer: typeof o.answer === "string" ? o.answer : "",
+      references: Array.isArray(o.references) ? (o.references as string[]) : [],
+      follow_up_suggestions: Array.isArray(o.follow_up_suggestions)
+        ? (o.follow_up_suggestions as string[])
+        : [],
+    };
+  }
+
   throw new Error(`Unknown agent status: ${String(status)}`);
 }
 

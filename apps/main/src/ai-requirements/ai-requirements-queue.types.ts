@@ -26,10 +26,12 @@ export type UserPersona =
   | "project_manager"
   | "stakeholder";
 
-/** Which specialist agent should handle the turn. */
-export type AgentType = "requirements" | "developer_advisor";
+/** Which specialist agent should handle the turn. Matches an AgentDefinition.key. */
+export type AgentType = string;
 
 export type AiRequirementsQueuedJob = {
+  /** Discriminates job kind on the FastAPI side. */
+  jobType: "chat_turn";
   jobId: string;
   projectId: string;
   organizationId: string;
@@ -83,3 +85,52 @@ export type AiRequirementsFailedResult = {
 export type AiRequirementsResultEvent =
   | AiRequirementsSucceededResult
   | AiRequirementsFailedResult;
+
+// ─── One-shot architecture document generation ───────────────────────────────
+
+/** Supported architecture document types that the AI can generate. */
+export type ArchDocType = "sad" | "hld" | "lld" | "adr";
+
+export type AiArchDocQueuedJob = {
+  /** Discriminates job kind on the FastAPI side. */
+  jobType: "arch_doc";
+  jobId: string;
+  projectId: string;
+  organizationId: string;
+  userId: string;
+  /** Which layer (e.g. "backend", "frontend", "mobile") — becomes part of the doc title. */
+  layer?: string;
+  docType: ArchDocType;
+  projectContext?: AiProjectContext;
+  partialSrs?: AgentPartialSrs;
+  attempts: number;
+  queuedAt: string;
+};
+
+export type AiArchDocAcceptedResponse = {
+  jobId: string;
+  status: "queued";
+};
+
+export type AiArchDocSucceededResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "arch_doc_succeeded";
+  docType: ArchDocType;
+  layer?: string;
+  content: string;
+  title: string;
+  completedAt?: string;
+};
+
+export type AiArchDocFailedResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "arch_doc_failed";
+  error: string;
+  failedAt?: string;
+};
+
+export type AiArchDocResultEvent = AiArchDocSucceededResult | AiArchDocFailedResult;
