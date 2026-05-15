@@ -53,7 +53,7 @@ export class AiChatTurnService {
 
     const [conversation_history, partialSrs, projectContext] = await Promise.all([
       this.conversationHistoryBeforeNewTurn(params.sessionId),
-      this.getSessionPartialSrs(params.sessionId, params.projectId),
+      this.getProjectDraftSrs(params.projectId),
       this.getProjectContext(params.projectId),
     ]);
 
@@ -101,7 +101,7 @@ export class AiChatTurnService {
 
     const [conversation_history, partialSrs, upload, projectContext] = await Promise.all([
       this.conversationHistoryBeforeNewTurn(params.sessionId),
-      this.getSessionPartialSrs(params.sessionId, params.projectId),
+      this.getProjectDraftSrs(params.projectId),
       this.storeUpload(params.file),
       this.getProjectContext(params.projectId),
     ]);
@@ -272,6 +272,10 @@ export class AiChatTurnService {
             },
           });
 
+      // The completed SRS becomes the project draft so a later refinement chat
+      // continues from the full spec rather than starting over.
+      const completedDraft = completedSpecToDraft(agent) as unknown as Prisma.InputJsonValue;
+
       const [spec] = await Promise.all([
         specUpsert,
         docUpsert,
@@ -279,16 +283,27 @@ export class AiChatTurnService {
           where: { id: params.sessionId },
           data: { updatedAt: new Date(), srsProgress: 100, partialSrs: Prisma.DbNull },
         }),
+        this.prismaService.project.update({
+          where: { id: params.projectId },
+          data: { draftSrs: completedDraft, draftSrsProgress: 100 },
+        }),
       ]);
       specificationId = spec.id;
     } else {
-      // needs_clarification — persist the partial SRS back to the session
+      // needs_clarification — persist the partial SRS to the project draft (the
+      // single shared source of truth) and mirror it on the session for the UI.
       const partial = agent.partial_srs as unknown as Prisma.InputJsonValue;
       const progress = computeSrsProgress(agent.partial_srs as AgentPartialSrs);
-      await this.prismaService.projectAiChatSession.update({
-        where: { id: params.sessionId },
-        data: { updatedAt: new Date(), partialSrs: partial, srsProgress: progress },
-      });
+      await Promise.all([
+        this.prismaService.projectAiChatSession.update({
+          where: { id: params.sessionId },
+          data: { updatedAt: new Date(), partialSrs: partial, srsProgress: progress },
+        }),
+        this.prismaService.project.update({
+          where: { id: params.projectId },
+          data: { draftSrs: partial, draftSrsProgress: progress },
+        }),
+      ]);
     }
 
     const completed: AiTurnCompletedPayload = {
@@ -330,22 +345,23 @@ export class AiChatTurnService {
     return { name: project?.name ?? projectId, description: project?.description };
   }
 
-  private async getSessionPartialSrs(
-    sessionId: string,
-    projectId: string,
-  ): Promise<AgentPartialSrs | null> {
-    const session = await this.prismaService.projectAiChatSession.findUnique({
-      where: { id: sessionId },
-      select: { partialSrs: true },
+  /**
+   * The draft SRS is owned by the project, not the chat session — so every new
+   * chat continues from the project's single shared draft. Falls back to the
+   * latest completed specification if the project has no draft yet.
+   */
+  private async getProjectDraftSrs(projectId: string): Promise<AgentPartialSrs | null> {
+    const project = await this.prismaService.project.findUnique({
+      where: { id: projectId },
+      select: { draftSrs: true },
     });
 
-    // Session already has in-progress partial SRS — use it directly
-    if (session?.partialSrs) {
-      return session.partialSrs as unknown as AgentPartialSrs;
+    if (project?.draftSrs) {
+      return project.draftSrs as unknown as AgentPartialSrs;
     }
 
-    // No session-level partial — fall back to the latest completed spec for the project
-    // so the agent continues building on existing work rather than starting from scratch
+    // No draft yet — seed from the latest completed spec so refinement chats
+    // continue building on the finished SRS rather than starting from scratch.
     const latestSpec = await this.prismaService.projectSpecification.findFirst({
       where: { projectId },
       orderBy: { createdAt: "desc" },
@@ -355,7 +371,7 @@ export class AiChatTurnService {
     if (!latestSpec?.payload) return null;
 
     const p = latestSpec.payload as Record<string, unknown>;
-    const partial: AgentPartialSrs = {
+    return {
       project_name: (p.project_name as string) ?? undefined,
       summary: (p.summary as string) ?? undefined,
       features: (p.features as AgentPartialSrs["features"]) ?? undefined,
@@ -366,7 +382,6 @@ export class AiChatTurnService {
       acceptance_criteria: (p.acceptance_criteria as string[]) ?? undefined,
       out_of_scope: (p.out_of_scope as string[]) ?? undefined,
     };
-    return partial;
   }
 
   private async storeUpload(file: Express.Multer.File): Promise<AiRequirementsQueuedUpload> {
@@ -386,6 +401,23 @@ export class AiChatTurnService {
       size: file.size,
     };
   }
+}
+
+/** Project the completed SRS down to the partial-SRS shape used as the project draft. */
+function completedSpecToDraft(
+  agent: Extract<AgentOrchestratorResponse, { status: "complete" }>,
+): AgentPartialSrs {
+  return {
+    project_name: agent.project_name,
+    summary: agent.summary,
+    features: agent.features,
+    user_roles: [],
+    functional_requirements: agent.functional_requirements,
+    non_functional_requirements: agent.non_functional_requirements,
+    user_stories: agent.user_stories,
+    acceptance_criteria: agent.acceptance_criteria,
+    out_of_scope: agent.out_of_scope ?? [],
+  };
 }
 
 function assistantReadableContent(agent: AgentOrchestratorResponse): string {

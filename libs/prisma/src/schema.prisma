@@ -300,6 +300,10 @@ model Project {
     name           String
     description    String?
     status         ProjectStatus          @default(active)
+    // Single shared draft SRS for the project. Every AI chat session reads and
+    // writes this one draft so a new chat always continues from prior progress.
+    draftSrs         Json?
+    draftSrsProgress Int                  @default(0)
     createdAt      DateTime               @default(now())
     updatedAt      DateTime               @updatedAt
     organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)

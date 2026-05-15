@@ -58,6 +58,11 @@ export class AiRequirementsController {
     return this.aiChatSessionService.listSessions(projectId, query);
   }
 
+  @Get("draft")
+  getProjectDraft(@Param("projectId") projectId: string) {
+    return this.aiChatSessionService.getProjectDraft(projectId);
+  }
+
   @Get("chat/sessions/:sessionId/messages")
   listChatMessages(
     @Param("projectId") projectId: string,
