@@ -9,12 +9,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { Auth } from "@app/auth";
+import { CurrentUser } from "@app/auth/decorators/current-user.decorator";
 import { ProjectMemberRole } from "@prisma/client";
 import { CurrentOrganization } from "../project-auth/current-organization.decorator";
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
-import { AddProjectMemberDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
+import { AddProjectMemberDto, UpdateProjectMemberPersonasDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
 import { ProjectMembersService } from "./project-members.service";
 
 @Auth()
@@ -60,5 +61,18 @@ export class ProjectMembersController {
     @Param("userId") userId: string,
   ) {
     return this.projectMembersService.remove(organizationId, projectId, userId);
+  }
+
+  // Any member can update their own personas; admins/owners can update anyone's
+  @Patch(":userId/persona")
+  updatePersonas(
+    @CurrentOrganization() organizationId: string,
+    @Param("projectId") projectId: string,
+    @Param("userId") userId: string,
+    @CurrentUser("id") currentUserId: string,
+    @Body() dto: UpdateProjectMemberPersonasDto,
+  ) {
+    void currentUserId;
+    return this.projectMembersService.updatePersonas(organizationId, projectId, userId, dto);
   }
 }

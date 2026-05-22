@@ -9,12 +9,35 @@ import {
 export class AiChatSessionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createSession(projectId: string, userId: string, title?: string | null) {
+  /** The project's single shared draft SRS — what every new chat continues from. */
+  async getProjectDraft(projectId: string) {
+    const project = await this.prismaService.project.findUnique({
+      where: { id: projectId },
+      select: { draftSrs: true, draftSrsProgress: true },
+    });
+
+    if (!project) {
+      throw new NotFoundException("Project not found");
+    }
+
+    return {
+      draftSrs: project.draftSrs ?? null,
+      draftSrsProgress: project.draftSrsProgress,
+    };
+  }
+
+  async createSession(
+    projectId: string,
+    userId: string,
+    title?: string | null,
+    agentType = "requirements",
+  ) {
     return this.prismaService.projectAiChatSession.create({
       data: {
         projectId,
         createdBy: userId,
         title: title?.trim() || null,
+        agentType,
       },
     });
   }
@@ -34,6 +57,7 @@ export class AiChatSessionService {
           author: { select: { id: true, name: true, email: true } },
           _count: { select: { messages: true } },
         },
+        // partialSrs and srsProgress are selected by default (scalar fields)
       }),
       this.prismaService.projectAiChatSession.count({ where: { projectId } }),
     ]);

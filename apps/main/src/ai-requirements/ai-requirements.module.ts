@@ -11,6 +11,8 @@ import { AiRequirementsResultConsumer } from "./ai-requirements-result.consumer"
 import { AiRequirementsController } from "./ai-requirements.controller";
 import { ProjectSpecificationsController } from "./project-specifications.controller";
 import { ProjectSpecificationsService } from "./project-specifications.service";
+import { AgentDefinitionSeedService } from "./agent-definition-seed.service";
+import { AiArchDocService } from "./ai-arch-doc.service";
 
 @Module({
   imports: [PrismaModule, ProjectAuthModule, UploaderModule],
@@ -23,6 +25,8 @@ import { ProjectSpecificationsService } from "./project-specifications.service";
     AiRequirementsResultConsumer,
     ProjectSpecificationsService,
     AiChatGateway,
+    AgentDefinitionSeedService,
+    AiArchDocService,
   ],
 })
 export class AiRequirementsModule {}

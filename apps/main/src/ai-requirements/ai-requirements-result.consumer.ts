@@ -3,7 +3,8 @@ import { ConfigService } from "@nestjs/config";
 import { LoggerService } from "@app/logger";
 import { createClient, RedisClientType } from "redis";
 import { AiChatTurnService } from "./ai-chat-turn.service";
-import { AiRequirementsResultEvent } from "./ai-requirements-queue.types";
+import { AiArchDocService } from "./ai-arch-doc.service";
+import { AiArchDocResultEvent, AiRequirementsResultEvent } from "./ai-requirements-queue.types";
 
 @Injectable()
 export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestroy {
@@ -22,6 +23,7 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
   constructor(
     private readonly configService: ConfigService,
     private readonly turnService: AiChatTurnService,
+    private readonly archDocService: AiArchDocService,
     private readonly logger: LoggerService,
   ) {
     this.resultsStream = this.configService.getOrThrow<string>(
@@ -76,10 +78,10 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
   }
 
   private async processMessage(messageId: string, payload: string): Promise<void> {
-    let result: AiRequirementsResultEvent;
+    let result: AiRequirementsResultEvent | AiArchDocResultEvent;
 
     try {
-      result = JSON.parse(payload) as AiRequirementsResultEvent;
+      result = JSON.parse(payload) as AiRequirementsResultEvent | AiArchDocResultEvent;
     } catch (error) {
       await this.sendToDeadLetter(messageId, payload, error);
       await this.ack(messageId);
@@ -87,7 +89,9 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
     }
 
     try {
-      if (result.status === "succeeded") {
+      if (result.status === "arch_doc_succeeded" || result.status === "arch_doc_failed") {
+        await this.archDocService.completeGeneration(result as AiArchDocResultEvent);
+      } else if (result.status === "succeeded") {
         await this.turnService.completeQueuedTurn({
           projectId: result.projectId,
           userId: result.userId,
@@ -107,7 +111,7 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
 
       await this.ack(messageId);
     } catch (error) {
-      await this.handleProcessingFailure(messageId, result, error);
+      await this.handleProcessingFailure(messageId, result as AiRequirementsResultEvent, error);
     }
   }
 

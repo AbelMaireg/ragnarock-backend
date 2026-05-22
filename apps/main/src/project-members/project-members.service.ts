@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { ProjectMemberRole } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { PrismaService } from "@app/prisma";
-import { AddProjectMemberDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
+import { AddProjectMemberDto, UpdateProjectMemberPersonasDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
 
 @Injectable()
 export class ProjectMembersService {
@@ -45,8 +45,9 @@ export class ProjectMembersService {
         projectId,
         userId: targetUserId,
         role: dto.role,
+        personas: dto.personas ?? [],
       },
-      update: { role: dto.role },
+      update: { role: dto.role, personas: dto.personas ?? undefined },
       include: { user: { select: { id: true, name: true, email: true, image: true } } },
     });
   }
@@ -80,6 +81,19 @@ export class ProjectMembersService {
     return this.prismaService.projectMember.update({
       where: { projectId_userId: { projectId, userId } },
       data: { role: dto.role },
+    });
+  }
+
+  async updatePersonas(
+    organizationId: string,
+    projectId: string,
+    userId: string,
+    dto: UpdateProjectMemberPersonasDto,
+  ) {
+    await this.ensureProject(organizationId, projectId);
+    return this.prismaService.projectMember.update({
+      where: { projectId_userId: { projectId, userId } },
+      data: { personas: dto.personas },
     });
   }
 
