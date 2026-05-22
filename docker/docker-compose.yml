@@ -64,41 +64,41 @@ services:
   mailpit:
     image: axllent/mailpit:latest
 
-  nginx:
-    image: nginx:1.29-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - apps
-      - mailpit
+  # nginx:
+  #   image: nginx:1.29-alpine
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #   depends_on:
+  #     - apps
+  #     - mailpit
 
-  apps:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.dev
-    working_dir: /app
-    env_file:
-      - ../.env
-    environment:
-      # Inside Compose, Redis is not on localhost — override host .env when present.
-      REDIS_HOST: redis
-    ports:
-      - "8000:3000"
-    volumes:
-      - ../:/app
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      mailpit:
-        condition: service_started
-      typesense:
-        condition: service_healthy
+  # apps:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile.dev
+  #   working_dir: /app
+  #   env_file:
+  #     - ../.env
+  #   environment:
+  #     # Inside Compose, Redis is not on localhost — override host .env when present.
+  #     REDIS_HOST: redis
+  #   ports:
+  #     - "8000:3000"
+  #   volumes:
+  #     - ../:/app
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #     mailpit:
+  #       condition: service_started
+  #     typesense:
+  #       condition: service_healthy
 
 volumes:
   postgres_data:

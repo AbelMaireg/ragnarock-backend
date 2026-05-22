@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { PrismaModule } from "@app/prisma";
 import { UploaderModule } from "@app/uploader";
 import { ProjectAuthModule } from "../project-auth/project-auth.module";
+import { LinearSyncModule } from "../linear-sync/linear-sync.module";
 import { AiChatBroadcastService } from "./ai-chat-broadcast.service";
 import { AiChatGateway } from "./ai-chat.gateway";
 import { AiChatSessionService } from "./ai-chat-session.service";
@@ -13,9 +14,11 @@ import { ProjectSpecificationsController } from "./project-specifications.contro
 import { ProjectSpecificationsService } from "./project-specifications.service";
 import { AgentDefinitionSeedService } from "./agent-definition-seed.service";
 import { AiArchDocService } from "./ai-arch-doc.service";
+import { AiPlannerService } from "./ai-planner.service";
+import { RagnarockChatService } from "./ragnarock-chat.service";
 
 @Module({
-  imports: [PrismaModule, ProjectAuthModule, UploaderModule],
+  imports: [PrismaModule, ProjectAuthModule, UploaderModule, LinearSyncModule],
   controllers: [AiRequirementsController, ProjectSpecificationsController],
   providers: [
     AiChatBroadcastService,
@@ -27,6 +30,8 @@ import { AiArchDocService } from "./ai-arch-doc.service";
     AiChatGateway,
     AgentDefinitionSeedService,
     AiArchDocService,
+    AiPlannerService,
+    RagnarockChatService,
   ],
 })
 export class AiRequirementsModule {}

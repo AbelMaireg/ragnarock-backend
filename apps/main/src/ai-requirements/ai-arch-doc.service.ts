@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { PrismaService } from "@app/prisma";
 import { AiChatBroadcastService } from "./ai-chat-broadcast.service";
@@ -26,17 +26,27 @@ export class AiArchDocService {
     docType: ArchDocType;
     layer?: string;
   }): Promise<AiArchDocAcceptedResponse> {
-    const [project, draftSrs] = await Promise.all([
-      this.prisma.project.findUnique({
-        where: { id: params.projectId },
-        select: { name: true, description: true, organizationId: true },
-      }),
-      this.getProjectDraftSrs(params.projectId),
-    ]);
+    const project = await this.prisma.project.findUnique({
+      where: { id: params.projectId },
+      select: { name: true, description: true, organizationId: true },
+    });
 
     if (!project) throw new NotFoundException("Project not found");
     if (project.organizationId !== params.organizationId) {
       throw new NotFoundException("Project not found");
+    }
+
+    // Gate: a completed SRS must exist before architecture docs can be generated
+    const completedSpec = await this.prisma.projectSpecification.findFirst({
+      where: { projectId: params.projectId },
+      select: { id: true, payload: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!completedSpec) {
+      throw new UnprocessableEntityException(
+        "No completed SRS found for this project. Complete the requirements session before generating architecture documents.",
+      );
     }
 
     const jobId = randomUUID();
@@ -49,7 +59,7 @@ export class AiArchDocService {
       docType: params.docType,
       layer: params.layer,
       projectContext: { name: project.name, description: project.description },
-      partialSrs: draftSrs ?? undefined,
+      partialSrs: (completedSpec.payload as AgentPartialSrs) ?? undefined,
       attempts: 0,
       queuedAt: new Date().toISOString(),
     };
@@ -118,14 +128,8 @@ export class AiArchDocService {
       docType: result.docType,
       layer: result.layer,
       title: doc.title,
+      content: result.content,
     });
   }
 
-  private async getProjectDraftSrs(projectId: string): Promise<AgentPartialSrs | null> {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-      select: { draftSrs: true },
-    });
-    return (project?.draftSrs as AgentPartialSrs | null) ?? null;
-  }
 }

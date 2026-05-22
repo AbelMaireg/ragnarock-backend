@@ -4,7 +4,9 @@ import { LoggerService } from "@app/logger";
 import { createClient, RedisClientType } from "redis";
 import { AiChatTurnService } from "./ai-chat-turn.service";
 import { AiArchDocService } from "./ai-arch-doc.service";
-import { AiArchDocResultEvent, AiRequirementsResultEvent } from "./ai-requirements-queue.types";
+import { AiArchDocResultEvent, AiPlannerResultEvent, AiRequirementsResultEvent, RagnarockChatResultEvent } from "./ai-requirements-queue.types";
+import { AiPlannerService } from "./ai-planner.service";
+import { RagnarockChatService } from "./ragnarock-chat.service";
 
 @Injectable()
 export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestroy {
@@ -24,6 +26,8 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
     private readonly configService: ConfigService,
     private readonly turnService: AiChatTurnService,
     private readonly archDocService: AiArchDocService,
+    private readonly plannerService: AiPlannerService,
+    private readonly ragnarockChatService: RagnarockChatService,
     private readonly logger: LoggerService,
   ) {
     this.resultsStream = this.configService.getOrThrow<string>(
@@ -78,10 +82,10 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
   }
 
   private async processMessage(messageId: string, payload: string): Promise<void> {
-    let result: AiRequirementsResultEvent | AiArchDocResultEvent;
+    let result: AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | RagnarockChatResultEvent;
 
     try {
-      result = JSON.parse(payload) as AiRequirementsResultEvent | AiArchDocResultEvent;
+      result = JSON.parse(payload) as AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | RagnarockChatResultEvent;
     } catch (error) {
       await this.sendToDeadLetter(messageId, payload, error);
       await this.ack(messageId);
@@ -91,6 +95,16 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
     try {
       if (result.status === "arch_doc_succeeded" || result.status === "arch_doc_failed") {
         await this.archDocService.completeGeneration(result as AiArchDocResultEvent);
+      } else if (result.status === "planner_succeeded") {
+        await this.plannerService.handlePlannerResult(result as any);
+      } else if (result.status === "planner_failed") {
+        this.logger.warn(
+          `AI planner job failed | jobId=${result.jobId} | error=${result.error}`,
+          AiRequirementsResultConsumer.name,
+        );
+        await this.plannerService.handlePlannerFailed(result as any);
+      } else if (result.status === "ragnarock_chat_succeeded" || result.status === "ragnarock_chat_failed") {
+        await this.ragnarockChatService.handleResult(result as RagnarockChatResultEvent);
       } else if (result.status === "succeeded") {
         await this.turnService.completeQueuedTurn({
           projectId: result.projectId,

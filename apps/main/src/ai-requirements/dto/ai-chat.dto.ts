@@ -95,6 +95,15 @@ export class GenerateArchDocDto {
   layer?: string;
 }
 
+export class RagnarockChatMessageDto {
+  @IsString()
+  sessionId!: string;
+
+  @IsString()
+  @MaxLength(2000)
+  message!: string;
+}
+
 export class ListProjectSpecificationsQueryDto {
   @Type(() => Number)
   @IsInt()

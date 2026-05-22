@@ -134,3 +134,149 @@ export type AiArchDocFailedResult = {
 };
 
 export type AiArchDocResultEvent = AiArchDocSucceededResult | AiArchDocFailedResult;
+
+// ─── Project Planner — one-shot task breakdown ───────────────────────────────
+
+export type AiPlannerQueuedJob = {
+  /** Discriminates job kind on the FastAPI side. */
+  jobType: "planner";
+  jobId: string;
+  projectId: string;
+  organizationId: string;
+  userId: string;
+  projectContext?: AiProjectContext;
+  /** Full or partial SRS — the planner reads features and requirements from here. */
+  partialSrs?: AgentPartialSrs;
+  attempts: number;
+  queuedAt: string;
+};
+
+export type AiPlannerAcceptedResponse = {
+  jobId: string;
+  status: "queued";
+};
+
+/**
+ * Shape of each task inside AiPlannerSucceededResult.tasks.
+ * Mirrors PlannerTask in ragnarock-ai/app/schemas/planner.py (camelCase aliases).
+ * Maps directly to CreateProjectTaskDto fields used for bulk-create.
+ */
+export type AiPlannerTask = {
+  featureId: string;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  phase: "discovery" | "planning" | "build" | "test" | "release";
+  labels: string[];
+  dependsOn: string[];
+  executionOrder: number;
+  effortEstimate: "xs" | "s" | "m" | "l" | "xl";
+};
+
+export type AiPlannerSucceededResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "planner_succeeded";
+  tasks: AiPlannerTask[];
+  completedAt?: string;
+};
+
+export type AiPlannerFailedResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "planner_failed";
+  error: string;
+  failedAt?: string;
+};
+
+export type AiPlannerResultEvent = AiPlannerSucceededResult | AiPlannerFailedResult;
+
+// ─── Ragnarock Chat — project Q&A + intent routing ───────────────────────────
+
+export type RagnarockDetectedAction = {
+  type: "generate_srs" | "generate_plan" | "generate_doc" | "none";
+  docType?: string;
+  confirmationText: string;
+};
+
+export type RagnarockTaskSummary = {
+  id: string;
+  title: string;
+  status: string;
+  phase?: string | null;
+  priority: string;
+  assigneeName?: string | null;
+};
+
+export type RagnarockDocSummary = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+};
+
+export type RagnarockMemberSummary = {
+  userId: string;
+  name?: string | null;
+  email?: string | null;
+  role: string;
+  personas: string[];
+};
+
+export type RagnarockActivitySummary = {
+  action: string;
+  entityType: string;
+  actorName?: string | null;
+  createdAt: string;
+};
+
+export type RagnarockProjectSnapshot = {
+  projectId: string;
+  name: string;
+  description?: string | null;
+  status: string;
+  hasSrs: boolean;
+  srsSummary?: string | null;
+  tasks: RagnarockTaskSummary[];
+  docs: RagnarockDocSummary[];
+  members: RagnarockMemberSummary[];
+  recentActivity: RagnarockActivitySummary[];
+};
+
+export type RagnarockChatQueuedJob = {
+  jobType: "ragnarock_chat";
+  jobId: string;
+  projectId: string;
+  organizationId: string;
+  userId: string;
+  sessionId: string;
+  message: string;
+  projectSnapshot: RagnarockProjectSnapshot;
+  attempts: number;
+  queuedAt: string;
+};
+
+export type RagnarockChatAcceptedResponse = { jobId: string; status: "queued" };
+
+export type RagnarockChatSucceededResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  sessionId: string;
+  status: "ragnarock_chat_succeeded";
+  answer: string;
+  detectedAction?: RagnarockDetectedAction | null;
+  completedAt?: string;
+};
+
+export type RagnarockChatFailedResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "ragnarock_chat_failed";
+  error: string;
+};
+
+export type RagnarockChatResultEvent = RagnarockChatSucceededResult | RagnarockChatFailedResult;

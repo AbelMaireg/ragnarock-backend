@@ -140,6 +140,42 @@ export class AiChatGateway implements OnGatewayInit {
     }
   }
 
+  @SubscribeMessage("join_project")
+  async handleJoinProject(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { projectId?: string },
+  ) {
+    try {
+      const projectId = payload?.projectId;
+      if (!projectId || typeof projectId !== "string") {
+        return { ok: false as const, code: "INVALID_PAYLOAD", message: "projectId is required" };
+      }
+
+      const userId = client.data.userId as string;
+      const organizationId = activeOrganizationIdFromSocket(client);
+      if (!organizationId) {
+        throw new ForbiddenException("Active organization is required");
+      }
+
+      await this.projectAccessService.validateProjectMembership({
+        projectId,
+        userId,
+        organizationId,
+      });
+
+      await client.join(projectId);
+      return { ok: true as const };
+    } catch (e) {
+      const message =
+        e instanceof ForbiddenException || e instanceof NotFoundException
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Join failed";
+      return { ok: false as const, code: "JOIN_FAILED", message };
+    }
+  }
+
   @SubscribeMessage("leave_session")
   async handleLeaveSession(
     @ConnectedSocket() client: Socket,
