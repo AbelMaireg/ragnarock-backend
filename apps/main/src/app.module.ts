@@ -10,6 +10,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AiRequirementsModule } from "./ai-requirements/ai-requirements.module";
 import { IntegrationsModule } from "./integrations/integrations.module";
+import { LinearSyncModule } from "./linear-sync/linear-sync.module";
 import { ProjectActivityModule } from "./project-activity/project-activity.module";
 import { ProjectSkillsModule } from "./project-skills/project-skills.module";
 import { ProjectDocumentationsModule } from "./project-documentations/project-documentations.module";
@@ -17,6 +18,7 @@ import { ProjectMembersModule } from "./project-members/project-members.module";
 import { ProjectRequirementsModule } from "./project-requirements/project-requirements.module";
 import { ProjectTasksModule } from "./project-tasks/project-tasks.module";
 import { ProjectsModule } from "./projects/projects.module";
+import { RepositoriesModule } from "./repositories/repositories.module";
 import { UsersController } from "./users/users.controller";
 import { UsersService } from "./users/users.service";
 
@@ -29,6 +31,7 @@ import { UsersService } from "./users/users.service";
     MailerModule,
     TypesenseModule,
     AuthModule,
+    RepositoriesModule,
     ProjectsModule,
     ProjectMembersModule,
     ProjectTasksModule,
@@ -37,6 +40,7 @@ import { UsersService } from "./users/users.service";
     ProjectActivityModule,
     ProjectSkillsModule,
     IntegrationsModule,
+    LinearSyncModule,
     AiRequirementsModule,
   ],
   controllers: [AppController, UsersController],

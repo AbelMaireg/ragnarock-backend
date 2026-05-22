@@ -4,12 +4,13 @@ RUN npm install -g bun
 
 WORKDIR /app
 
+COPY docker/entrypoint.app.dev.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+
 RUN chown node:node /app
 
 USER node
 
-COPY docker/entrypoint.apps.dev.sh /usr/local/bin/entrypoint.sh
-
 EXPOSE 3000 3001
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint.sh"]

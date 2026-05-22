@@ -9,5 +9,6 @@ import { OrganizationAdminGuard } from "./organization-admin.guard";
   imports: [PrismaModule],
   controllers: [IntegrationsController],
   providers: [IntegrationsService, IntegrationsCredentialsService, OrganizationAdminGuard],
+  exports: [IntegrationsCredentialsService],
 })
 export class IntegrationsModule {}

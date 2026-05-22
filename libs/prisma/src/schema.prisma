@@ -86,6 +86,32 @@ enum IntegrationAuthMode {
     api_key
 }
 
+enum LinearSyncDirection {
+    import
+    export
+    bidirectional
+}
+
+enum LinearSyncRunType {
+    import
+    export
+    sync
+}
+
+enum LinearSyncRunStatus {
+    pending
+    running
+    completed
+    failed
+    partial
+}
+
+enum LinearProjectSyncStatus {
+    idle
+    syncing
+    error
+}
+
 enum DocumentationType {
     brd
     prd
@@ -123,34 +149,35 @@ enum AiChatMessageRole {
 }
 
 model User {
-    id               String       @id
-    name             String?
-    email            String       @unique
-    emailVerified    Boolean      @default(false)
-    image            String?
-    createdAt        DateTime     @default(now())
-    updatedAt        DateTime     @updatedAt
-    posts            Post[]
-    sessions         Session[]
-    accounts         Account[]
-    members          Member[]
-    invitations      Invitation[] @relation("InvitationInviter")
-    twoFactorEnabled Boolean?     @default(false)
-    role             String?
-    banned           Boolean?     @default(false)
-    banReason        String?
-    banExpires       DateTime?
-    twofactors       TwoFactor[]
-    teammembers      TeamMember[]
-    projectMembers   ProjectMember[]
-    assignedTasks    ProjectTask[]     @relation("ProjectTaskAssignee")
-    createdDocs      ProjectDocumentation[] @relation("ProjectDocumentationAuthor")
-    createdRequirements ProjectRequirement[] @relation("ProjectRequirementAuthor")
-    projectActivities ProjectActivity[] @relation("ProjectActivityActor")
+    id                            String                  @id
+    name                          String?
+    email                         String                  @unique
+    emailVerified                 Boolean                 @default(false)
+    image                         String?
+    createdAt                     DateTime                @default(now())
+    updatedAt                     DateTime                @updatedAt
+    posts                         Post[]
+    sessions                      Session[]
+    accounts                      Account[]
+    members                       Member[]
+    invitations                   Invitation[]            @relation("InvitationInviter")
+    twoFactorEnabled              Boolean?                @default(false)
+    role                          String?
+    banned                        Boolean?                @default(false)
+    banReason                     String?
+    banExpires                    DateTime?
+    twofactors                    TwoFactor[]
+    teammembers                   TeamMember[]
+    projectMembers                ProjectMember[]
+    assignedTasks                 ProjectTask[]           @relation("ProjectTaskAssignee")
+    createdDocs                   ProjectDocumentation[]  @relation("ProjectDocumentationAuthor")
+    createdRequirements           ProjectRequirement[]    @relation("ProjectRequirementAuthor")
+    projectActivities             ProjectActivity[]       @relation("ProjectActivityActor")
     integrationConnectionsCreated IntegrationConnection[] @relation("IntegrationConnectionCreator")
-    skillsAuthored                    Skill[]                 @relation("SkillAuthor")
-    createdAiChatSessions          ProjectAiChatSession[]    @relation("ProjectAiChatSessionAuthor")
-    createdProjectSpecifications   ProjectSpecification[]    @relation("ProjectSpecificationAuthor")
+    skillsAuthored                Skill[]                 @relation("SkillAuthor")
+    createdAiChatSessions         ProjectAiChatSession[]  @relation("ProjectAiChatSessionAuthor")
+    createdProjectSpecifications  ProjectSpecification[]  @relation("ProjectSpecificationAuthor")
+    projectRepositoriesLinked     ProjectRepository[]     @relation("ProjectRepositoryLinker")
 
     @@map("user")
 }
@@ -216,16 +243,16 @@ model Verification {
 }
 
 model Organization {
-    id          String       @id
-    name        String
-    slug        String       @unique
-    logo        String?
-    metadata    String?
-    createdAt   DateTime     @default(now())
-    members     Member[]
-    invitations Invitation[]
-    teams                   Team[]
-    projects                Project[]
+    id                     String                  @id
+    name                   String
+    slug                   String                  @unique
+    logo                   String?
+    metadata               String?
+    createdAt              DateTime                @default(now())
+    members                Member[]
+    invitations            Invitation[]
+    teams                  Team[]
+    projects               Project[]
     integrationConnections IntegrationConnection[]
 
     @@map("organization")
@@ -363,11 +390,13 @@ model ProjectTask {
     phase       TaskPhase?
     startDate   DateTime?
     dueDate     DateTime?
+    labels      String[]     @default([])
     sortOrder   Int          @default(0)
     createdAt   DateTime     @default(now())
     updatedAt   DateTime     @updatedAt
     project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
     assignee    User?        @relation("ProjectTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+    linearLink  LinearIssueLink?
 
     @@index([projectId])
     @@index([assigneeId])
@@ -464,12 +493,12 @@ model ProjectAiChatSession {
 }
 
 model ProjectAiChatMessage {
-    id        String           @id @default(cuid())
+    id        String               @id @default(cuid())
     sessionId String
     role      AiChatMessageRole
-    content   String           @db.Text
+    content   String               @db.Text
     payload   Json?
-    createdAt DateTime         @default(now())
+    createdAt DateTime             @default(now())
     session   ProjectAiChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
     @@index([sessionId, createdAt])
@@ -477,17 +506,17 @@ model ProjectAiChatMessage {
 }
 
 model ProjectSpecification {
-    id             String               @id @default(cuid())
-    projectId      String
-    chatSessionId  String?
-    createdBy      String
-    title          String?
-    payload        Json
-    createdAt      DateTime             @default(now())
-    updatedAt      DateTime             @updatedAt
-    project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    chatSession    ProjectAiChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: SetNull)
-    author         User                 @relation("ProjectSpecificationAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
+    id            String                @id @default(cuid())
+    projectId     String
+    chatSessionId String?
+    createdBy     String
+    title         String?
+    payload       Json
+    createdAt     DateTime              @default(now())
+    updatedAt     DateTime              @updatedAt
+    project       Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    chatSession   ProjectAiChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: SetNull)
+    author        User                  @relation("ProjectSpecificationAuthor", fields: [createdBy], references: [id], onDelete: Restrict)
 
     @@index([projectId])
     @@index([chatSessionId])
@@ -513,19 +542,19 @@ model ProjectActivity {
 }
 
 model IntegrationConnection {
-    id                    String                      @id @default(cuid())
-    organizationId      String
-    provider            IntegrationProviderKey
-    authMode            IntegrationAuthMode         @default(pat)
-    status              IntegrationConnectionStatus @default(pending)
-    encryptedCredentials String                     @db.Text
-    lastError           String?                    @db.Text
-    lastVerifiedAt      DateTime?
-    createdByUserId     String
-    createdAt           DateTime                   @default(now())
-    updatedAt           DateTime                   @updatedAt
-    organization        Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-    creator               User                      @relation("IntegrationConnectionCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+    id                   String                      @id @default(cuid())
+    organizationId       String
+    provider             IntegrationProviderKey
+    authMode             IntegrationAuthMode         @default(pat)
+    status               IntegrationConnectionStatus @default(pending)
+    encryptedCredentials String                      @db.Text
+    lastError            String?                     @db.Text
+    lastVerifiedAt       DateTime?
+    createdByUserId      String
+    createdAt            DateTime                    @default(now())
+    updatedAt            DateTime                    @updatedAt
+    organization         Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    creator              User                        @relation("IntegrationConnectionCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
 
     @@unique([organizationId, provider])
     @@index([organizationId])
@@ -550,4 +579,103 @@ model Skill {
     @@index([projectId])
     @@index([createdBy])
     @@map("skill")
+}
+
+/// Linked GitHub repository for a project (metadata cached; commits/PRs fetched live).
+model ProjectRepository {
+    id              String    @id @default(cuid())
+    projectId       String
+    project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    /// GitHub numeric repository id (immutable across renames).
+    githubRepoId    String
+    owner           String
+    name            String
+    fullName        String
+    description     String?
+    /// GitHub visibility: public | private | internal
+    visibility      String
+    defaultBranch   String
+    htmlUrl         String
+    stargazersCount Int       @default(0)
+    pushedAt        DateTime?
+    cachedAt        DateTime  @default(now())
+    linkedByUserId  String
+    linkedByUser    User      @relation("ProjectRepositoryLinker", fields: [linkedByUserId], references: [id], onDelete: Restrict)
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+
+    @@unique([projectId, githubRepoId])
+    @@index([projectId])
+    @@index([linkedByUserId])
+    @@map("projectRepository")
+}
+
+/// Links an app project to a Linear project/team for sync.
+model LinearProjectMapping {
+    id                   String                  @id @default(cuid())
+    projectId            String                  @unique
+    linearProjectId      String
+    linearTeamId         String
+    linearProjectName    String?
+    defaultLinearStateId String?
+    stateMap             Json?
+    lastSyncCursor       DateTime?
+    lastSyncAt           DateTime?
+    lastImportAt         DateTime?
+    lastExportAt         DateTime?
+    syncStatus           LinearProjectSyncStatus @default(idle)
+    lastSyncError        String?                 @db.Text
+    autoSyncEnabled      Boolean                 @default(false)
+    createdAt            DateTime                @default(now())
+    updatedAt            DateTime                @updatedAt
+    project              Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@index([linearProjectId])
+    @@index([autoSyncEnabled, syncStatus])
+    @@map("linearProjectMapping")
+}
+
+/// Maps a local task to a Linear issue with sync metadata.
+model LinearIssueLink {
+    id                    String               @id @default(cuid())
+    projectId             String
+    projectTaskId         String               @unique
+    linearIssueId         String
+    linearIssueIdentifier String?
+    linearUpdatedAt       DateTime?
+    localUpdatedAt        DateTime?
+    syncDirection         LinearSyncDirection?
+    importedFromLinear    Boolean              @default(false)
+    syncedToLinear        Boolean              @default(false)
+    externalSource        String               @default("linear")
+    lastSyncedAt          DateTime?
+    lastSyncError         String?
+    linearStateId         String?
+    labelIds              Json?
+    createdAt             DateTime             @default(now())
+    updatedAt             DateTime             @updatedAt
+    project               Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectTask           ProjectTask          @relation(fields: [projectTaskId], references: [id], onDelete: Cascade)
+
+    @@unique([projectId, linearIssueId])
+    @@index([projectId])
+    @@index([linearIssueId])
+    @@index([lastSyncedAt])
+    @@map("linearIssueLink")
+}
+
+/// Audit log for Linear sync operations.
+model LinearSyncRun {
+    id         String              @id @default(cuid())
+    projectId  String
+    type       LinearSyncRunType
+    status     LinearSyncRunStatus @default(pending)
+    startedAt  DateTime            @default(now())
+    finishedAt DateTime?
+    stats      Json?
+    error      String?             @db.Text
+    project    Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@index([projectId, startedAt(sort: Desc)])
+    @@map("linearSyncRun")
 }
