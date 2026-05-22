@@ -50,6 +50,19 @@ export class AiQaIntelligenceService {
     }
 
     const srsPayload = completedSpec.payload as AgentPartialSrs;
+
+    // Optional: pull the latest architecture doc to enrich test case generation.
+    // SAD > HLD > LLD — prefer the highest-level doc available; fall back gracefully.
+    const archDoc = await this.prisma.projectDocumentation.findFirst({
+      where: {
+        projectId: params.projectId,
+        type: { in: ["sad", "hld", "lld"] as any },
+        generationMode: "ai",
+      },
+      select: { content: true, type: true },
+      orderBy: { createdAt: "desc" },
+    });
+
     const jobId = randomUUID();
 
     const job: AiQaIntelligenceQueuedJob = {
@@ -60,6 +73,7 @@ export class AiQaIntelligenceService {
       userId: params.userId,
       projectContext: { name: project.name, description: project.description },
       partialSrs: srsPayload,
+      archContext: archDoc?.content ?? null,
       attempts: 0,
       queuedAt: new Date().toISOString(),
     };

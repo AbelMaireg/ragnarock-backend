@@ -203,6 +203,8 @@ export type AiQaIntelligenceQueuedJob = {
   userId: string;
   projectContext?: AiProjectContext;
   partialSrs?: AgentPartialSrs;
+  /** Markdown content of the latest architecture doc — null if none exists yet. */
+  archContext?: string | null;
   attempts: number;
   queuedAt: string;
 };
