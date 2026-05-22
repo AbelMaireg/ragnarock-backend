@@ -193,6 +193,48 @@ export type AiPlannerFailedResult = {
 
 export type AiPlannerResultEvent = AiPlannerSucceededResult | AiPlannerFailedResult;
 
+// ─── QA Intelligence — one-shot test suite generation ────────────────────────
+
+export type AiQaIntelligenceQueuedJob = {
+  jobType: "qa_intelligence";
+  jobId: string;
+  projectId: string;
+  organizationId: string;
+  userId: string;
+  projectContext?: AiProjectContext;
+  partialSrs?: AgentPartialSrs;
+  attempts: number;
+  queuedAt: string;
+};
+
+export type AiQaIntelligenceAcceptedResponse = {
+  jobId: string;
+  status: "queued";
+};
+
+export type AiQaIntelligenceSucceededResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "qa_intelligence_succeeded";
+  content: string;
+  title: string;
+  completedAt?: string;
+};
+
+export type AiQaIntelligenceFailedResult = {
+  jobId: string;
+  projectId: string;
+  userId: string;
+  status: "qa_intelligence_failed";
+  error: string;
+  failedAt?: string;
+};
+
+export type AiQaIntelligenceResultEvent =
+  | AiQaIntelligenceSucceededResult
+  | AiQaIntelligenceFailedResult;
+
 // ─── Ragnarock Chat — project Q&A + intent routing ───────────────────────────
 
 export type RagnarockDetectedAction = {

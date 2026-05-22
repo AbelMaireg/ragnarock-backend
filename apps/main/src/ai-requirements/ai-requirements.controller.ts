@@ -25,6 +25,7 @@ import { AiArchDocService } from "./ai-arch-doc.service";
 import { AiChatSessionService } from "./ai-chat-session.service";
 import { AiChatTurnService } from "./ai-chat-turn.service";
 import { AiPlannerService } from "./ai-planner.service";
+import { AiQaIntelligenceService } from "./ai-qa-intelligence.service";
 import { RagnarockChatService } from "./ragnarock-chat.service";
 import {
   CreateAiChatSessionDto,
@@ -44,6 +45,7 @@ export class AiRequirementsController {
     private readonly aiChatTurnService: AiChatTurnService,
     private readonly aiArchDocService: AiArchDocService,
     private readonly aiPlannerService: AiPlannerService,
+    private readonly aiQaIntelligenceService: AiQaIntelligenceService,
     private readonly ragnarockChatService: RagnarockChatService,
   ) {}
 
@@ -129,6 +131,18 @@ export class AiRequirementsController {
     @CurrentUser("id") userId: string,
   ) {
     return this.aiPlannerService.requestGeneration({ projectId, organizationId, userId });
+  }
+
+  @UseGuards(ProjectRoleGuard)
+  @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin, ProjectMemberRole.member)
+  @Post("qa/generate")
+  @HttpCode(HttpStatus.ACCEPTED)
+  generateQaTestSuite(
+    @Param("projectId") projectId: string,
+    @CurrentOrganization() organizationId: string,
+    @CurrentUser("id") userId: string,
+  ) {
+    return this.aiQaIntelligenceService.requestGeneration({ projectId, organizationId, userId });
   }
 
   @Post("ragnarock/sessions")

@@ -4,8 +4,9 @@ import { LoggerService } from "@app/logger";
 import { createClient, RedisClientType } from "redis";
 import { AiChatTurnService } from "./ai-chat-turn.service";
 import { AiArchDocService } from "./ai-arch-doc.service";
-import { AiArchDocResultEvent, AiPlannerResultEvent, AiRequirementsResultEvent, RagnarockChatResultEvent } from "./ai-requirements-queue.types";
+import { AiArchDocResultEvent, AiPlannerResultEvent, AiQaIntelligenceResultEvent, AiRequirementsResultEvent, RagnarockChatResultEvent } from "./ai-requirements-queue.types";
 import { AiPlannerService } from "./ai-planner.service";
+import { AiQaIntelligenceService } from "./ai-qa-intelligence.service";
 import { RagnarockChatService } from "./ragnarock-chat.service";
 
 @Injectable()
@@ -27,6 +28,7 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
     private readonly turnService: AiChatTurnService,
     private readonly archDocService: AiArchDocService,
     private readonly plannerService: AiPlannerService,
+    private readonly qaIntelligenceService: AiQaIntelligenceService,
     private readonly ragnarockChatService: RagnarockChatService,
     private readonly logger: LoggerService,
   ) {
@@ -82,10 +84,10 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
   }
 
   private async processMessage(messageId: string, payload: string): Promise<void> {
-    let result: AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | RagnarockChatResultEvent;
+    let result: AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | AiQaIntelligenceResultEvent | RagnarockChatResultEvent;
 
     try {
-      result = JSON.parse(payload) as AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | RagnarockChatResultEvent;
+      result = JSON.parse(payload) as AiRequirementsResultEvent | AiArchDocResultEvent | AiPlannerResultEvent | AiQaIntelligenceResultEvent | RagnarockChatResultEvent;
     } catch (error) {
       await this.sendToDeadLetter(messageId, payload, error);
       await this.ack(messageId);
@@ -103,6 +105,8 @@ export class AiRequirementsResultConsumer implements OnModuleInit, OnModuleDestr
           AiRequirementsResultConsumer.name,
         );
         await this.plannerService.handlePlannerFailed(result as any);
+      } else if (result.status === "qa_intelligence_succeeded" || result.status === "qa_intelligence_failed") {
+        await this.qaIntelligenceService.handleResult(result as AiQaIntelligenceResultEvent);
       } else if (result.status === "ragnarock_chat_succeeded" || result.status === "ragnarock_chat_failed") {
         await this.ragnarockChatService.handleResult(result as RagnarockChatResultEvent);
       } else if (result.status === "succeeded") {
