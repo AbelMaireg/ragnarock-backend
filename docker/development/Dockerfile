@@ -4,7 +4,7 @@ RUN npm install -g bun
 
 WORKDIR /app
 
-COPY docker/entrypoint.app.dev.sh /usr/local/bin/entrypoint.sh
+COPY docker/development/entrypoint.app.sh /usr/local/bin/entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown node:node /app

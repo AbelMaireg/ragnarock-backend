@@ -1,7 +1,9 @@
-COMPOSE_FILE ?= ./docker/docker-compose.yml
+COMPOSE_FILE ?= ./docker/development/docker-compose.yml
+COMPOSE_STAGING ?= ./docker/staging/docker-compose.yml
 DC := docker compose -f $(COMPOSE_FILE)
+DC_STAGING := docker compose -f $(COMPOSE_STAGING)
 
-# ─── Docker ───────────────────────────────────────────────────────────
+# ─── Docker (development) ─────────────────────────────────────────────
 .PHONY: up up-d down build rebuild restart logs ps
 
 up:
@@ -28,6 +30,24 @@ logs:
 
 ps:
 	$(DC) ps
+
+# ─── Docker (staging) ─────────────────────────────────────────────────
+.PHONY: staging-up staging-up-d staging-down staging-build staging-logs
+
+staging-up:
+	$(DC_STAGING) up --build
+
+staging-up-d:
+	$(DC_STAGING) up --build -d
+
+staging-down:
+	$(DC_STAGING) down
+
+staging-build:
+	$(DC_STAGING) build
+
+staging-logs:
+	$(DC_STAGING) logs -f
 
 # ─── Dev (local, no Docker) ──────────────────────────────────────────
 .PHONY: dev dev-admin dev-debug install

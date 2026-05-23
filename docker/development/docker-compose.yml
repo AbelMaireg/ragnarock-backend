@@ -1,8 +1,10 @@
+name: ragnarock
+
 services:
   postgres:
     image: pgvector/pgvector:pg17
     env_file:
-      - ../.env
+      - ../../.env
     ports:
       - "5432:5432"
     volumes:
@@ -48,7 +50,7 @@ services:
     volumes:
       - typesense_data:/data
     env_file:
-      - ../.env
+      - ../../.env
     # Official image has no curl/wget; use bash /dev/tcp to verify the HTTP port is listening.
     healthcheck:
       test:
@@ -76,18 +78,18 @@ services:
 
   # apps:
   #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile.dev
+  #     context: ../..
+  #     dockerfile: docker/development/Dockerfile
   #   working_dir: /app
   #   env_file:
-  #     - ../.env
+  #     - ../../.env
   #   environment:
   #     # Inside Compose, Redis is not on localhost — override host .env when present.
   #     REDIS_HOST: redis
   #   ports:
   #     - "8000:3000"
   #   volumes:
-  #     - ../:/app
+  #     - ../../:/app
   #   extra_hosts:
   #     - "host.docker.internal:host-gateway"
   #   depends_on:
