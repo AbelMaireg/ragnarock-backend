@@ -156,10 +156,7 @@ export class AiRequirementsController {
   }
 
   @Get("ragnarock/sessions")
-  ragnarockListSessions(
-    @Param("projectId") projectId: string,
-    @CurrentUser("id") userId: string,
-  ) {
+  ragnarockListSessions(@Param("projectId") projectId: string, @CurrentUser("id") userId: string) {
     return this.ragnarockChatService.listSessions({ projectId, userId });
   }
 

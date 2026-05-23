@@ -1,7 +1,13 @@
 import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createClient, RedisClientType } from "redis";
-import { AiArchDocQueuedJob, AiPlannerQueuedJob, AiQaIntelligenceQueuedJob, AiRequirementsQueuedJob, RagnarockChatQueuedJob } from "./ai-requirements-queue.types";
+import {
+  AiArchDocQueuedJob,
+  AiPlannerQueuedJob,
+  AiQaIntelligenceQueuedJob,
+  AiRequirementsQueuedJob,
+  RagnarockChatQueuedJob,
+} from "./ai-requirements-queue.types";
 
 @Injectable()
 export class AiRequirementsQueueProducer implements OnModuleDestroy {
@@ -10,9 +16,7 @@ export class AiRequirementsQueueProducer implements OnModuleDestroy {
   private readonly streamMaxLen: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.jobsStream = this.configService.getOrThrow<string>(
-      "redisAiRequirementsQueue.jobsStream",
-    );
+    this.jobsStream = this.configService.getOrThrow<string>("redisAiRequirementsQueue.jobsStream");
     this.streamMaxLen = this.configService.get<number>(
       "redisAiRequirementsQueue.streamMaxLen",
       10000,
@@ -43,7 +47,14 @@ export class AiRequirementsQueueProducer implements OnModuleDestroy {
     return this.push(job);
   }
 
-  private async push(job: AiRequirementsQueuedJob | AiArchDocQueuedJob | AiPlannerQueuedJob | AiQaIntelligenceQueuedJob | RagnarockChatQueuedJob): Promise<string> {
+  private async push(
+    job:
+      | AiRequirementsQueuedJob
+      | AiArchDocQueuedJob
+      | AiPlannerQueuedJob
+      | AiQaIntelligenceQueuedJob
+      | RagnarockChatQueuedJob,
+  ): Promise<string> {
     await this.ensureConnected();
 
     return this.redisClient.sendCommand<string>([

@@ -63,7 +63,12 @@ export class ProjectRequirementsService {
     return requirement;
   }
 
-  async update(projectId: string, requirementId: string, dto: UpdateProjectRequirementDto, userId: string) {
+  async update(
+    projectId: string,
+    requirementId: string,
+    dto: UpdateProjectRequirementDto,
+    userId: string,
+  ) {
     await this.ensureRequirement(projectId, requirementId);
     const requirement = await this.prismaService.projectRequirement.update({
       where: { id: requirementId },

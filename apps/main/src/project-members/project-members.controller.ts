@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { Auth } from "@app/auth";
 import { CurrentUser } from "@app/auth/decorators/current-user.decorator";
 import { ProjectMemberRole } from "@prisma/client";
@@ -15,7 +6,11 @@ import { CurrentOrganization } from "../project-auth/current-organization.decora
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
-import { AddProjectMemberDto, UpdateProjectMemberPersonasDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
+import {
+  AddProjectMemberDto,
+  UpdateProjectMemberPersonasDto,
+  UpdateProjectMemberRoleDto,
+} from "./dto/project-member.dto";
 import { ProjectMembersService } from "./project-members.service";
 
 @Auth()

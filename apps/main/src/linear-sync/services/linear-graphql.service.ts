@@ -147,11 +147,9 @@ export class LinearGraphqlService {
   }
 
   async listTeamLabels(pat: string, teamId: string) {
-    const data = await this.request<{ team: { labels: { nodes: { id: string; name: string }[] } } | null }>(
-      pat,
-      TEAM_LABELS_QUERY,
-      { teamId },
-    );
+    const data = await this.request<{
+      team: { labels: { nodes: { id: string; name: string }[] } } | null;
+    }>(pat, TEAM_LABELS_QUERY, { teamId });
     return data.team?.labels.nodes ?? [];
   }
 
@@ -162,12 +160,15 @@ export class LinearGraphqlService {
   ): Promise<{ issues: LinearIssueNode[]; hasNextPage: boolean; endCursor: string | null }> {
     const useIncremental = Boolean(
       options.updatedAfter &&
-        options.updatedAfter.getTime() > new Date("2000-01-01T00:00:00.000Z").getTime(),
+      options.updatedAfter.getTime() > new Date("2000-01-01T00:00:00.000Z").getTime(),
     );
 
     const data = useIncremental
       ? await this.request<{
-          issues: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: unknown[] };
+          issues: {
+            pageInfo: { hasNextPage: boolean; endCursor: string | null };
+            nodes: unknown[];
+          };
         }>(pat, ISSUES_INCREMENTAL_QUERY, {
           projectId,
           first: options.first,
@@ -175,7 +176,10 @@ export class LinearGraphqlService {
           updatedAtFilter: options.updatedAfter!.toISOString(),
         })
       : await this.request<{
-          issues: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: unknown[] };
+          issues: {
+            pageInfo: { hasNextPage: boolean; endCursor: string | null };
+            nodes: unknown[];
+          };
         }>(pat, ISSUES_PAGE_QUERY, {
           projectId,
           first: options.first,

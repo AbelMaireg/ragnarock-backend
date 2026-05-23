@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { CurrentUser } from "@app/auth/decorators/current-user.decorator";
 import { Auth } from "@app/auth";
 import { ProjectMemberRole } from "@prisma/client";
@@ -69,7 +79,10 @@ export class ProjectsController {
 
   @UseGuards(ProjectMemberGuard)
   @Get(":projectId/overview")
-  getOverview(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
+  getOverview(
+    @CurrentOrganization() organizationId: string,
+    @Param("projectId") projectId: string,
+  ) {
     return this.projectsService.overview(organizationId, projectId);
   }
 }

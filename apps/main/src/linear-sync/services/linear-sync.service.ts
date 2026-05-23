@@ -16,14 +16,10 @@ export class LinearSyncService {
 
   async import(organizationId: string, projectId: string) {
     const run = await this.importService.createSyncRun(projectId, LinearSyncRunType.import);
-    try {
-      const stats = await this.importService.importProject(organizationId, projectId, run.id, {
-        full: true,
-      });
-      return { syncRunId: run.id, stats };
-    } catch (e) {
-      throw e;
-    }
+    const stats = await this.importService.importProject(organizationId, projectId, run.id, {
+      full: true,
+    });
+    return { syncRunId: run.id, stats };
   }
 
   async export(organizationId: string, projectId: string) {

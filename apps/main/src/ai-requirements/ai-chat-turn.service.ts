@@ -191,7 +191,9 @@ export class AiChatTurnService {
     }
 
     return {
-      userPersona: nonStakeholderPersonas[0] ? (nonStakeholderPersonas[0] as unknown as UserPersona) : undefined,
+      userPersona: nonStakeholderPersonas[0]
+        ? (nonStakeholderPersonas[0] as unknown as UserPersona)
+        : undefined,
       agentType,
     };
   }

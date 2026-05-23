@@ -124,11 +124,7 @@ export class LinearImportService {
       return stats;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Import failed";
-      await this.mappingService.setSyncStatus(
-        projectId,
-        LinearProjectSyncStatus.error,
-        message,
-      );
+      await this.mappingService.setSyncStatus(projectId, LinearProjectSyncStatus.error, message);
       if (syncRunId) {
         await this.prisma.linearSyncRun.update({
           where: { id: syncRunId },

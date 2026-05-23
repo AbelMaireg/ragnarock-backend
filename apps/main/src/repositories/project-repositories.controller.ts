@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { Auth, CurrentUser } from "@app/auth";
 import { ProjectMemberRole } from "@prisma/client";
 import type { Request } from "express";
@@ -202,10 +192,7 @@ export class ProjectRepositoriesController {
 
   @UseGuards(ProjectMemberGuard)
   @Get(":projectId/repositories")
-  list(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  list(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.repositoriesService.listLinked(organizationId, projectId);
   }
 

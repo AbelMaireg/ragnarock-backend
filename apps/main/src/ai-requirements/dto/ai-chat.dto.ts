@@ -1,13 +1,5 @@
 import { Type } from "class-transformer";
-import {
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-  ValidateNested,
-} from "class-validator";
+import { IsIn, IsInt, IsOptional, IsString, MaxLength, Min, ValidateNested } from "class-validator";
 const KNOWN_AGENT_TYPES = [
   "requirements",
   "developer_intelligence",

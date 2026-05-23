@@ -35,10 +35,7 @@ export class LinearSyncController {
 
   @UseGuards(ProjectMemberGuard)
   @Get(":projectId/linear")
-  getStatus(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  getStatus(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.mappingService.getStatus(organizationId, projectId);
   }
 
@@ -56,10 +53,7 @@ export class LinearSyncController {
   @UseGuards(ProjectMemberGuard, ProjectRoleGuard)
   @ProjectRole(ProjectMemberRole.owner, ProjectMemberRole.admin)
   @Delete(":projectId/linear/link")
-  unlink(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  unlink(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.mappingService.unlinkProject(organizationId, projectId);
   }
 
@@ -76,28 +70,19 @@ export class LinearSyncController {
 
   @UseGuards(ProjectMemberGuard)
   @Post(":projectId/linear/import")
-  import(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  import(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.syncService.import(organizationId, projectId);
   }
 
   @UseGuards(ProjectMemberGuard)
   @Post(":projectId/linear/export")
-  export(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  export(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.syncService.export(organizationId, projectId);
   }
 
   @UseGuards(ProjectMemberGuard)
   @Post(":projectId/linear/sync")
-  sync(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  sync(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.syncService.sync(organizationId, projectId);
   }
 

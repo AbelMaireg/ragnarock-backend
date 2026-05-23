@@ -30,6 +30,11 @@ import { LinearApiExceptionFilter } from "./filters/linear-api.exception-filter"
     LinearWebhookService,
     LinearApiExceptionFilter,
   ],
-  exports: [LinearGraphqlService, LinearCredentialsResolver, LinearExportService, LinearMappingService],
+  exports: [
+    LinearGraphqlService,
+    LinearCredentialsResolver,
+    LinearExportService,
+    LinearMappingService,
+  ],
 })
 export class LinearSyncModule {}

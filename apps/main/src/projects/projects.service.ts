@@ -12,7 +12,12 @@ import {
 
 function groupByCountAll(row: { _count: unknown }): number {
   const raw = row._count;
-  if (raw && typeof raw === "object" && "_all" in raw && typeof (raw as { _all: unknown })._all === "number") {
+  if (
+    raw &&
+    typeof raw === "object" &&
+    "_all" in raw &&
+    typeof (raw as { _all: unknown })._all === "number"
+  ) {
     return (raw as { _all: number })._all;
   }
   return 0;
@@ -317,7 +322,9 @@ export class ProjectsService {
       progress: {
         taskCompletionPercent: totalTasks > 0 ? Math.round((tasksDone / totalTasks) * 100) : 0,
         requirementCompletionPercent:
-          totalRequirements > 0 ? Math.round((requirementsImplemented / totalRequirements) * 100) : 0,
+          totalRequirements > 0
+            ? Math.round((requirementsImplemented / totalRequirements) * 100)
+            : 0,
       },
       highlights: {
         lastProjectUpdateAt: project.updatedAt,

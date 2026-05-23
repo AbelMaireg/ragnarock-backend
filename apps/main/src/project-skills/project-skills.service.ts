@@ -110,7 +110,13 @@ export class ProjectSkillsService {
   }
 
   buildExportMarkdown(
-    skill: { title: string; slug: string; summary: string | null; bodyMarkdown: string; updatedAt: Date },
+    skill: {
+      title: string;
+      slug: string;
+      summary: string | null;
+      bodyMarkdown: string;
+      updatedAt: Date;
+    },
     projectId: string,
   ): string {
     const frontmatter = [
@@ -128,12 +134,15 @@ export class ProjectSkillsService {
     return frontmatter;
   }
 
-  buildExportTxt(skill: {
-    title: string;
-    summary: string | null;
-    bodyMarkdown: string;
-  }): string {
-    const parts = [skill.title, "", skill.summary?.trim() || "", "", skill.bodyMarkdown.trimEnd(), ""];
+  buildExportTxt(skill: { title: string; summary: string | null; bodyMarkdown: string }): string {
+    const parts = [
+      skill.title,
+      "",
+      skill.summary?.trim() || "",
+      "",
+      skill.bodyMarkdown.trimEnd(),
+      "",
+    ];
     return parts.join("\n");
   }
 }

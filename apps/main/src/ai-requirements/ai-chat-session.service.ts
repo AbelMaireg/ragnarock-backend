@@ -1,9 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@app/prisma";
-import {
-  ListAiChatMessagesQueryDto,
-  ListAiChatSessionsQueryDto,
-} from "./dto/ai-chat.dto";
+import { ListAiChatMessagesQueryDto, ListAiChatSessionsQueryDto } from "./dto/ai-chat.dto";
 
 @Injectable()
 export class AiChatSessionService {

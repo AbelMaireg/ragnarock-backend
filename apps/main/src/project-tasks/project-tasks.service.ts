@@ -77,9 +77,7 @@ export class ProjectTasksService {
     await this.ensureAssigneeIsProjectMember(projectId, dto.assigneeId);
 
     const status = dto.status ?? TaskStatus.todo;
-    const sortOrder =
-      dto.sortOrder ??
-      (await this.nextSortOrder(projectId, status));
+    const sortOrder = dto.sortOrder ?? (await this.nextSortOrder(projectId, status));
 
     const task = await this.prismaService.projectTask.create({
       data: {
@@ -120,7 +118,7 @@ export class ProjectTasksService {
         status: dto.status,
         priority: dto.priority,
         phase: dto.phase === null ? null : dto.phase,
-        assigneeId: dto.assigneeId === null ? null : dto.assigneeId ?? undefined,
+        assigneeId: dto.assigneeId === null ? null : (dto.assigneeId ?? undefined),
         startDate:
           dto.startDate === null ? null : dto.startDate ? new Date(dto.startDate) : undefined,
         dueDate: dto.dueDate === null ? null : dto.dueDate ? new Date(dto.dueDate) : undefined,

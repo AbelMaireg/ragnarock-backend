@@ -29,7 +29,7 @@ describe("linear-field.mapper", () => {
   });
 
   it("uses custom state map when provided", () => {
-    const custom = { "QA": TaskStatus.reviewing };
+    const custom = { QA: TaskStatus.reviewing };
     expect(resolveTaskStatusFromLinearState("QA", custom)).toBe(TaskStatus.reviewing);
   });
 

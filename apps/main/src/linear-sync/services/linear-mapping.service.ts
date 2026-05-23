@@ -64,11 +64,7 @@ export class LinearMappingService {
     };
   }
 
-  async linkProject(
-    organizationId: string,
-    projectId: string,
-    dto: LinkLinearProjectDto,
-  ) {
+  async linkProject(organizationId: string, projectId: string, dto: LinkLinearProjectDto) {
     await this.getProjectContext(organizationId, projectId);
     const pat = await this.credentials.resolvePat(organizationId);
 
@@ -135,11 +131,7 @@ export class LinearMappingService {
     return { unlinked: true };
   }
 
-  async updateSettings(
-    organizationId: string,
-    projectId: string,
-    dto: UpdateLinearSettingsDto,
-  ) {
+  async updateSettings(organizationId: string, projectId: string, dto: UpdateLinearSettingsDto) {
     const project = await this.getProjectContext(organizationId, projectId);
     if (!project.linearMapping) {
       throw new NotFoundException({
@@ -187,11 +179,7 @@ export class LinearMappingService {
     return project.linearMapping;
   }
 
-  async setSyncStatus(
-    projectId: string,
-    status: LinearProjectSyncStatus,
-    error?: string | null,
-  ) {
+  async setSyncStatus(projectId: string, status: LinearProjectSyncStatus, error?: string | null) {
     await this.prisma.linearProjectMapping.update({
       where: { projectId },
       data: {

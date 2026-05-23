@@ -62,7 +62,10 @@ export class ProjectDocumentationsService {
     };
   }
 
-  async findOne(projectId: string, documentationId: string): Promise<ProjectDocumentationWithAuthor> {
+  async findOne(
+    projectId: string,
+    documentationId: string,
+  ): Promise<ProjectDocumentationWithAuthor> {
     const doc = await this.prismaService.projectDocumentation.findFirst({
       where: { id: documentationId, projectId },
       include: { author: authorSelect },

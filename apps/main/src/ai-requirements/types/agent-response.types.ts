@@ -84,9 +84,15 @@ export function parseAgentResponse(raw: unknown): AgentOrchestratorResponse {
 export function computeSrsProgress(partial: AgentPartialSrs | null | undefined): number {
   if (!partial) return 0;
   const fields: (keyof AgentPartialSrs)[] = [
-    "project_name", "summary", "features", "user_roles",
-    "functional_requirements", "non_functional_requirements",
-    "user_stories", "acceptance_criteria", "out_of_scope",
+    "project_name",
+    "summary",
+    "features",
+    "user_roles",
+    "functional_requirements",
+    "non_functional_requirements",
+    "user_stories",
+    "acceptance_criteria",
+    "out_of_scope",
   ];
   const filled = fields.filter((f) => {
     const v = partial[f];

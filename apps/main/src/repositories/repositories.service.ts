@@ -107,7 +107,9 @@ export class RepositoriesService {
     const headers = expressHeadersToFetchHeaders(req);
     const octokit = await this.createOctokitForUser(userId, headers);
 
-    const path = safeDecodeURIComponent(query.path ?? "").replace(/^\/+/, "").trim();
+    const path = safeDecodeURIComponent(query.path ?? "")
+      .replace(/^\/+/, "")
+      .trim();
     const ref = safeDecodeURIComponent(query.ref?.trim() || row.defaultBranch);
 
     const cacheKey = `browse:${repositoryId}:${ref}:${path || "<root>"}`;
@@ -129,7 +131,10 @@ export class RepositoriesService {
 
     if (!Array.isArray(data)) {
       // If the path points to a file, the UI should call `getRepositoryFile`.
-      throw new HttpException({ message: "Path is a file. Use /file endpoint." }, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { message: "Path is a file. Use /file endpoint." },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const items = data
@@ -167,7 +172,9 @@ export class RepositoriesService {
     const headers = expressHeadersToFetchHeaders(req);
     const octokit = await this.createOctokitForUser(userId, headers);
 
-    const path = safeDecodeURIComponent(query.path ?? "").replace(/^\/+/, "").trim();
+    const path = safeDecodeURIComponent(query.path ?? "")
+      .replace(/^\/+/, "")
+      .trim();
     if (!path) {
       throw new HttpException({ message: "File path is required" }, HttpStatus.BAD_REQUEST);
     }
@@ -739,7 +746,8 @@ export class RepositoriesService {
         throw new HttpException(
           {
             code: GITHUB_ERROR_CODES.FORBIDDEN,
-            message: "Your GitHub account cannot access this resource (permissions or token scope).",
+            message:
+              "Your GitHub account cannot access this resource (permissions or token scope).",
           },
           HttpStatus.FORBIDDEN,
         );
@@ -749,7 +757,10 @@ export class RepositoriesService {
       }
       if (e.status === 403 && e.message.includes("rate limit")) {
         throw new HttpException(
-          { code: GITHUB_ERROR_CODES.RATE_LIMIT, message: "GitHub API rate limit exceeded. Try again shortly." },
+          {
+            code: GITHUB_ERROR_CODES.RATE_LIMIT,
+            message: "GitHub API rate limit exceeded. Try again shortly.",
+          },
           HttpStatus.TOO_MANY_REQUESTS,
         );
       }

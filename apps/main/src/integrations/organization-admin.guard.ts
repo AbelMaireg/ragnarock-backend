@@ -13,7 +13,9 @@ export class OrganizationAdminGuard implements CanActivate {
     const userId = request.user?.id;
     const organizationId =
       request.activeOrganizationId ??
-      (typeof request.session?.activeOrganizationId === "string" ? request.session.activeOrganizationId : undefined);
+      (typeof request.session?.activeOrganizationId === "string"
+        ? request.session.activeOrganizationId
+        : undefined);
 
     if (typeof userId !== "string" || !organizationId) {
       throw new ForbiddenException("Active organization and user are required");

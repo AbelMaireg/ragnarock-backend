@@ -82,9 +82,7 @@ export type AiRequirementsFailedResult = {
   failedAt?: string;
 };
 
-export type AiRequirementsResultEvent =
-  | AiRequirementsSucceededResult
-  | AiRequirementsFailedResult;
+export type AiRequirementsResultEvent = AiRequirementsSucceededResult | AiRequirementsFailedResult;
 
 // ─── One-shot architecture document generation ───────────────────────────────
 

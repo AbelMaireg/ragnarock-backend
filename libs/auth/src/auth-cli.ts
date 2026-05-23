@@ -17,7 +17,10 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
-const oauthRedirectBase = (process.env.BETTER_AUTH_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const oauthRedirectBase = (process.env.BETTER_AUTH_URL ?? "http://localhost:8000").replace(
+  /\/$/,
+  "",
+);
 const basePath = process.env.BETTER_AUTH_BASE_PATH ?? "/api/auth";
 
 const cliSocialProviders = {

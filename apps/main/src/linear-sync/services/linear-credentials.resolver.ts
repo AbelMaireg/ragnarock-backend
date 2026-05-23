@@ -1,9 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  IntegrationConnectionStatus,
-  IntegrationProviderKey,
-} from "@prisma/client";
+import { IntegrationConnectionStatus, IntegrationProviderKey } from "@prisma/client";
 import { PrismaService } from "@app/prisma";
 import { IntegrationsCredentialsService } from "../../integrations/integrations-credentials.service";
 
@@ -75,8 +72,7 @@ export class LinearCredentialsResolver {
       return {
         mode: "oauth2",
         accessToken,
-        refreshToken:
-          typeof payload.refreshToken === "string" ? payload.refreshToken : undefined,
+        refreshToken: typeof payload.refreshToken === "string" ? payload.refreshToken : undefined,
         expiresAt: typeof payload.expiresAt === "string" ? payload.expiresAt : undefined,
       };
     }

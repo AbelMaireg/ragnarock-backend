@@ -2,7 +2,11 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { ProjectMemberRole } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { PrismaService } from "@app/prisma";
-import { AddProjectMemberDto, UpdateProjectMemberPersonasDto, UpdateProjectMemberRoleDto } from "./dto/project-member.dto";
+import {
+  AddProjectMemberDto,
+  UpdateProjectMemberPersonasDto,
+  UpdateProjectMemberRoleDto,
+} from "./dto/project-member.dto";
 
 @Injectable()
 export class ProjectMembersService {

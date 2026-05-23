@@ -2,8 +2,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import {
   LinearProjectSyncStatus,
   LinearSyncDirection,
-  LinearSyncRunStatus,
-  Prisma,
   TaskStatus,
 } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
@@ -165,17 +163,19 @@ export class LinearExportService {
       return { ...stats, exportedLinearIssueIds };
     } catch (e) {
       const message = e instanceof Error ? e.message : "Export failed";
-      await this.mappingService.setSyncStatus(
-        projectId,
-        LinearProjectSyncStatus.error,
-        message,
-      );
+      await this.mappingService.setSyncStatus(projectId, LinearProjectSyncStatus.error, message);
       throw e;
     }
   }
 
   private isDirty(
-    task: { updatedAt: Date; title: string; description: string | null; status: string; priority: string },
+    task: {
+      updatedAt: Date;
+      title: string;
+      description: string | null;
+      status: string;
+      priority: string;
+    },
     link: { localUpdatedAt: Date | null } | null,
   ): boolean {
     if (!link) {

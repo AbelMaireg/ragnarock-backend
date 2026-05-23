@@ -106,7 +106,11 @@ export class AiPlannerService {
     await this.maybePushToLinear(projectId);
   }
 
-  async handlePlannerFailed(result: { jobId: string; projectId: string; error: string }): Promise<void> {
+  async handlePlannerFailed(result: {
+    jobId: string;
+    projectId: string;
+    error: string;
+  }): Promise<void> {
     this.broadcast.emitToProject(result.projectId, "planner_failed", {
       jobId: result.jobId,
       error: result.error,

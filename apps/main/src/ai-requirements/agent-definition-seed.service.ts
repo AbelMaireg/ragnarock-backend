@@ -23,8 +23,7 @@ const AGENT_DEFINITIONS = [
   {
     key: "project_planner",
     name: "Project Planner Agent",
-    description:
-      "Generates a structured project plan and task backlog from an approved SRS.",
+    description: "Generates a structured project plan and task backlog from an approved SRS.",
     persona: "project_manager",
     sdlcPhase: "planning",
     mode: "one_shot" as const,
@@ -32,8 +31,7 @@ const AGENT_DEFINITIONS = [
   {
     key: "qa_intelligence",
     name: "QA Intelligence Agent",
-    description:
-      "Generates test plans, test cases, and quality criteria from requirements.",
+    description: "Generates test plans, test cases, and quality criteria from requirements.",
     persona: "qa_engineer",
     sdlcPhase: "test",
     mode: "conversational" as const,

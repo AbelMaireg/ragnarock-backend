@@ -131,5 +131,4 @@ export class AiArchDocService {
       content: result.content,
     });
   }
-
 }

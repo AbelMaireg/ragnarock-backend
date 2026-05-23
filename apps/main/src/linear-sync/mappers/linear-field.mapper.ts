@@ -49,8 +49,7 @@ export function shouldApplyLinearImport(
   linearIssueUpdatedAt: Date,
   link: { localUpdatedAt: Date | null; linearUpdatedAt: Date | null },
 ): boolean {
-  const linearChanged =
-    linearIssueUpdatedAt.getTime() > (link.linearUpdatedAt?.getTime() ?? 0);
+  const linearChanged = linearIssueUpdatedAt.getTime() > (link.linearUpdatedAt?.getTime() ?? 0);
   if (!linearChanged) {
     return false;
   }

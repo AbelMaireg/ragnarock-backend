@@ -213,7 +213,11 @@ export class RagnarockChatService {
       this.prisma.projectTask.findMany({
         where: { projectId },
         select: {
-          id: true, title: true, status: true, phase: true, priority: true,
+          id: true,
+          title: true,
+          status: true,
+          phase: true,
+          priority: true,
           assignee: { select: { name: true } },
         },
         orderBy: { sortOrder: "asc" },
@@ -228,14 +232,18 @@ export class RagnarockChatService {
       this.prisma.projectMember.findMany({
         where: { projectId },
         select: {
-          userId: true, role: true, personas: true,
+          userId: true,
+          role: true,
+          personas: true,
           user: { select: { name: true, email: true } },
         },
       }),
       this.prisma.projectActivity.findMany({
         where: { projectId },
         select: {
-          action: true, entityType: true, createdAt: true,
+          action: true,
+          entityType: true,
+          createdAt: true,
           actor: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -253,11 +261,17 @@ export class RagnarockChatService {
       const payload = completedSpec.payload as AgentPartialSrs | null;
       if (payload?.project_name || payload?.features?.length) {
         const featureNames = (payload.features ?? [])
-          .slice(0, 8).map((f) => f.name).filter(Boolean).join(", ");
+          .slice(0, 8)
+          .map((f) => f.name)
+          .filter(Boolean)
+          .join(", ");
         srsSummary = [
           payload.project_name ? `Project: ${payload.project_name}` : null,
           featureNames ? `Features: ${featureNames}` : null,
-        ].filter(Boolean).join(". ").slice(0, 500);
+        ]
+          .filter(Boolean)
+          .join(". ")
+          .slice(0, 500);
       }
     }
 
@@ -269,18 +283,24 @@ export class RagnarockChatService {
       hasSrs: !!completedSpec,
       srsSummary,
       tasks: tasks.map((t) => ({
-        id: t.id, title: t.title, status: t.status,
-        phase: t.phase ?? null, priority: t.priority,
+        id: t.id,
+        title: t.title,
+        status: t.status,
+        phase: t.phase ?? null,
+        priority: t.priority,
         assigneeName: t.assignee?.name ?? null,
       })),
       docs: docs.map((d) => ({ id: d.id, title: d.title, type: d.type, status: d.status })),
       members: members.map((m) => ({
-        userId: m.userId, name: m.user?.name ?? null,
-        email: m.user?.email ?? null, role: m.role,
+        userId: m.userId,
+        name: m.user?.name ?? null,
+        email: m.user?.email ?? null,
+        role: m.role,
         personas: m.personas as string[],
       })),
       recentActivity: activities.map((a) => ({
-        action: a.action, entityType: a.entityType,
+        action: a.action,
+        entityType: a.entityType,
         actorName: a.actor?.name ?? null,
         createdAt: a.createdAt.toISOString(),
       })),

@@ -18,7 +18,11 @@ import { CurrentOrganization } from "../project-auth/current-organization.decora
 import { ProjectMemberGuard } from "../project-auth/project-member.guard";
 import { ProjectRole } from "../project-auth/project-role.decorator";
 import { ProjectRoleGuard } from "../project-auth/project-role.guard";
-import { CreateProjectSkillDto, ExportSkillQueryDto, UpdateProjectSkillDto } from "./dto/project-skill.dto";
+import {
+  CreateProjectSkillDto,
+  ExportSkillQueryDto,
+  UpdateProjectSkillDto,
+} from "./dto/project-skill.dto";
 import { ProjectSkillsService } from "./project-skills.service";
 
 @Auth()

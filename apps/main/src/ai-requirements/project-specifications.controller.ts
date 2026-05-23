@@ -11,10 +11,7 @@ export class ProjectSpecificationsController {
   constructor(private readonly projectSpecificationsService: ProjectSpecificationsService) {}
 
   @Get()
-  list(
-    @Param("projectId") projectId: string,
-    @Query() query: ListProjectSpecificationsQueryDto,
-  ) {
+  list(@Param("projectId") projectId: string, @Query() query: ListProjectSpecificationsQueryDto) {
     return this.projectSpecificationsService.list(projectId, query);
   }
 
