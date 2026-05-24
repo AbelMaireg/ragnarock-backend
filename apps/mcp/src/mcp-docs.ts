@@ -50,7 +50,7 @@ Once connected, Claude Code will automatically discover all 7 tools and can call
 
 ## Connecting to Cursor
 
-Add this to your Cursor MCP settings (`.cursor/mcp.json`):
+Add this to your Cursor MCP settings (\`.cursor/mcp.json\`):
 
 \`\`\`json
 {
