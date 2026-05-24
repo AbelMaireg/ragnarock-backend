@@ -49,6 +49,36 @@ export class AiArchDocService {
       );
     }
 
+    // Dependency gates: HLD requires SAD; LLD requires HLD for the same layer
+    if (params.docType === "hld") {
+      const sadExists = await this.prisma.projectDocumentation.findFirst({
+        where: { projectId: params.projectId, type: "sad" as any, generationMode: "ai" },
+        select: { id: true },
+      });
+      if (!sadExists) {
+        throw new UnprocessableEntityException(
+          "A Software Architecture Document (SAD) must exist before generating a High-Level Design (HLD). Generate the SAD first.",
+        );
+      }
+    }
+
+    if (params.docType === "lld") {
+      const hldExists = await this.prisma.projectDocumentation.findFirst({
+        where: {
+          projectId: params.projectId,
+          type: "hld" as any,
+          generationMode: "ai",
+          ...(params.layer ? { title: { contains: params.layer } } : {}),
+        },
+        select: { id: true },
+      });
+      if (!hldExists) {
+        throw new UnprocessableEntityException(
+          `A High-Level Design (HLD)${params.layer ? ` for the "${params.layer}" layer` : ""} must exist before generating a Low-Level Design (LLD). Generate the HLD first.`,
+        );
+      }
+    }
+
     const jobId = randomUUID();
     const job: AiArchDocQueuedJob = {
       jobType: "arch_doc",
