@@ -80,7 +80,7 @@ services:
       agent:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:8000', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -93,7 +93,7 @@ services:
       dockerfile: docker/staging/Dockerfile.admin
     env_file: ../../.env
     ports:
-      - "3001:3001"
+      - "8001:8001"
     depends_on:
       postgres:
         condition: service_healthy
