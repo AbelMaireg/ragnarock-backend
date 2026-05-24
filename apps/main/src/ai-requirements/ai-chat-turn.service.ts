@@ -335,6 +335,8 @@ export class AiChatTurnService {
         }),
       ]);
       specificationId = spec.id;
+
+      await this.decomposeFeatures(params.projectId, params.userId, agent);
     } else {
       // needs_clarification — persist the partial SRS to the project draft (the
       // single shared source of truth) and mirror it on the session for the UI.
@@ -367,6 +369,57 @@ export class AiChatTurnService {
     );
 
     return completed;
+  }
+
+  private async decomposeFeatures(
+    projectId: string,
+    userId: string,
+    agent: Extract<AgentOrchestratorResponse, { status: "complete" }>,
+  ): Promise<void> {
+    for (const feature of agent.features) {
+      const upsertedFeature = await this.prismaService.projectFeature.upsert({
+        where: { projectId_externalId: { projectId, externalId: feature.featureId } },
+        create: {
+          projectId,
+          externalId: feature.featureId,
+          name: feature.name,
+          description: feature.description,
+        },
+        update: {
+          name: feature.name,
+          description: feature.description,
+        },
+        select: { id: true },
+      });
+
+      // Decompose functional requirements into rows linked to this feature.
+      // We assign sequential external IDs (fr_001, fr_002, …) scoped per feature.
+      // Re-running replaces all requirements for the feature to stay in sync with SRS.
+      await this.prismaService.projectRequirement.deleteMany({
+        where: { projectId, featureId: upsertedFeature.id },
+      });
+
+      const featureRequirements = agent.functional_requirements.filter((req) =>
+        req.toLowerCase().includes(feature.name.toLowerCase()),
+      );
+
+      // Fall back to all requirements if none mention this feature by name
+      const requirementsToLink =
+        featureRequirements.length > 0 ? featureRequirements : agent.functional_requirements;
+
+      await this.prismaService.projectRequirement.createMany({
+        data: requirementsToLink.map((req, index) => ({
+          projectId,
+          featureId: upsertedFeature.id,
+          externalId: `${feature.featureId}_fr_${String(index + 1).padStart(3, "0")}`,
+          title: req.length > 100 ? `${req.slice(0, 97)}…` : req,
+          description: req,
+          status: "draft" as const,
+          createdBy: userId,
+        })),
+        skipDuplicates: true,
+      });
+    }
   }
 
   failQueuedTurn(params: {
@@ -456,7 +509,11 @@ function completedSpecToDraft(
   return {
     project_name: agent.project_name,
     summary: agent.summary,
-    features: agent.features,
+    features: agent.features.map((f) => ({
+      featureId: f.featureId,
+      name: f.name,
+      description: f.description,
+    })),
     user_roles: [],
     functional_requirements: agent.functional_requirements,
     non_functional_requirements: agent.non_functional_requirements,
@@ -486,7 +543,7 @@ function specToMarkdown(agent: Extract<AgentOrchestratorResponse, { status: "com
   if (agent.features.length > 0) {
     lines.push("\n## Features");
     for (const f of agent.features) {
-      lines.push(`\n### ${f.name}\n\n${f.description}`);
+      lines.push(`\n### ${f.name} \`${f.featureId}\`\n\n${f.description}`);
     }
   }
 

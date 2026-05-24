@@ -82,7 +82,7 @@ SHAPE A — sections still missing:
   "partial_srs": {
     "project_name": "<filled or null>",
     "summary": "<filled or null>",
-    "features": [{"name": "...", "description": "..."}],
+    "features": [{"featureId": "feat_001", "name": "...", "description": "..."}],
     "user_roles": ["<role>"],
     "functional_requirements": ["<req>"],
     "non_functional_requirements": ["<req>"],
@@ -97,7 +97,7 @@ SHAPE B — all 9 sections filled:
   "status": "complete",
   "project_name": "<name>",
   "summary": "<2-3 sentence technical summary>",
-  "features": [{"name": "...", "description": "..."}],
+  "features": [{"featureId": "feat_001", "name": "...", "description": "..."}],
   "functional_requirements": ["<req>"],
   "non_functional_requirements": ["<req>"],
   "user_stories": [{"role": "...", "goal": "...", "benefit": "..."}],
@@ -111,6 +111,10 @@ Rules:
 - questions array: minimum 1, maximum 3. Prefer fewer, more focused questions.
 - Never repeat a question already answered in PROJECT CONTEXT, PROJECT MEMORY, or CONVERSATION HISTORY.
 - Never return complete unless every one of the 9 sections has content.
+- Every feature MUST have a featureId assigned as "feat_001", "feat_002", etc. (zero-padded, 3 digits).
+  Assign IDs in the order features are first introduced and NEVER change them across turns.
+  If features are already in PARTIAL SRS SO FAR with IDs, carry those IDs forward unchanged.
+  New features added in later turns continue the sequence (e.g. if feat_001–feat_003 exist, next is feat_004).
 """.strip()
 
 
@@ -165,7 +169,7 @@ def _format_partial_srs(partial: PartialSrs) -> str:
     if not filled:
         return "--- PARTIAL SRS SO FAR ---\n(empty — nothing confirmed yet)"
 
-    data = partial.model_dump(mode="json", exclude_none=False)
+    data = partial.model_dump(mode="json", by_alias=True, exclude_none=False)
     lines = [
         f"--- PARTIAL SRS SO FAR ({partial.progress_pct()}% complete) ---",
         "Carry these forward unchanged unless the business owner corrects them.",

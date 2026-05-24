@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.requirement import ConversationTurn, OrchestratorOutput, PartialSrs, ProjectContext
+from app.schemas.qa_intelligence import TestSuite
 
 
 class QueueModel(BaseModel):
@@ -162,6 +163,7 @@ class AiQaIntelligenceSucceededResult(QueueModel):
     status: Literal["qa_intelligence_succeeded"] = "qa_intelligence_succeeded"
     content: str
     title: str
+    test_suites: list[TestSuite] = Field(default_factory=list, alias="testSuites")
     completed_at: str | None = Field(default=None, alias="completedAt")
 
 

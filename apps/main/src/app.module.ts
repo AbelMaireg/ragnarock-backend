@@ -17,6 +17,7 @@ import { ProjectDocumentationsModule } from "./project-documentations/project-do
 import { ProjectMembersModule } from "./project-members/project-members.module";
 import { ProjectRequirementsModule } from "./project-requirements/project-requirements.module";
 import { ProjectTasksModule } from "./project-tasks/project-tasks.module";
+import { ProjectApiKeysModule } from "./project-api-keys/project-api-keys.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RepositoriesModule } from "./repositories/repositories.module";
 import { UsersController } from "./users/users.controller";
@@ -33,6 +34,7 @@ import { UsersService } from "./users/users.service";
     AuthModule,
     RepositoriesModule,
     ProjectsModule,
+    ProjectApiKeysModule,
     ProjectMembersModule,
     ProjectTasksModule,
     ProjectDocumentationsModule,

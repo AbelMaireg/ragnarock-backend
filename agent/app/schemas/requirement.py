@@ -14,8 +14,15 @@ class ConversationTurn(BaseModel):
 # ─── Partial SRS — filled incrementally across clarification turns ─────────────
 
 class Feature(BaseModel):
+    feature_id: str = Field(
+        ...,
+        alias="featureId",
+        description="Stable ID assigned once, never changed — e.g. feat_001",
+    )
     name: str
     description: str
+
+    model_config = {"populate_by_name": True}
 
 
 class UserStory(BaseModel):

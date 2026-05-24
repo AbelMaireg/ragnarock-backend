@@ -85,4 +85,10 @@ export class ProjectsController {
   ) {
     return this.projectsService.overview(organizationId, projectId);
   }
+
+  @UseGuards(ProjectMemberGuard)
+  @Get(":projectId/features")
+  getFeatures(@Param("projectId") projectId: string) {
+    return this.projectsService.getFeatures(projectId);
+  }
 }

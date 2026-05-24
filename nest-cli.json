@@ -19,6 +19,15 @@
         "tsConfigPath": "apps/admin/tsconfig.app.json"
       }
     },
+    "mcp": {
+      "type": "application",
+      "root": "apps/mcp",
+      "entryFile": "main",
+      "sourceRoot": "apps/mcp/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/mcp/tsconfig.app.json"
+      }
+    },
     "main": {
       "type": "application",
       "root": "apps/main",

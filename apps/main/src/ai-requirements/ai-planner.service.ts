@@ -125,18 +125,27 @@ export class AiPlannerService {
     // Sort by executionOrder so sortOrder on the board matches dependency sequence
     const sorted = [...tasks].sort((a, b) => a.executionOrder - b.executionOrder);
 
+    // Build a map of externalId → DB id for ProjectFeature rows
+    const externalIds = [...new Set(sorted.map((t) => t.featureId).filter(Boolean))];
+    const features = await this.prisma.projectFeature.findMany({
+      where: { projectId, externalId: { in: externalIds } },
+      select: { id: true, externalId: true },
+    });
+    const featureIdMap = new Map(features.map((f) => [f.externalId, f.id]));
+
     await this.prisma.$transaction(
       sorted.map((task, index) =>
         this.prisma.projectTask.create({
           data: {
             projectId,
+            featureId: featureIdMap.get(task.featureId) ?? null,
             title: task.title.trim().slice(0, 140),
             description: task.description?.trim().slice(0, 2000) || null,
             priority: task.priority as any,
             phase: task.phase as any,
             status: TaskStatus.backlog,
             labels: [
-              // featureId tag for MCP Phase 5 traceability
+              // externalId tag kept for backwards-compat and human readability
               `feat:${task.featureId}`,
               ...(task.labels ?? []),
             ],

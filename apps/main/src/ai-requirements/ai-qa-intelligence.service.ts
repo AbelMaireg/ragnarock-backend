@@ -119,6 +119,37 @@ export class AiQaIntelligenceService {
       select: { id: true, title: true, type: true },
     });
 
+    // Decompose structured test suites into ProjectTestCase rows for MCP queryability
+    if (result.testSuites?.length) {
+      const featureExternalIds = result.testSuites.map((s) => s.featureId);
+      const features = await this.prisma.projectFeature.findMany({
+        where: { projectId: result.projectId, externalId: { in: featureExternalIds } },
+        select: { id: true, externalId: true },
+      });
+      const featureIdMap = new Map(features.map((f) => [f.externalId, f.id]));
+
+      const testCaseRows = result.testSuites.flatMap((suite) =>
+        suite.testCases.map((tc) => ({
+          projectId: result.projectId,
+          featureId: featureIdMap.get(suite.featureId) ?? null,
+          externalId: tc.id,
+          title: tc.title,
+          testType: tc.type,
+          preconditions: tc.preconditions ?? [],
+          steps: tc.steps ?? [],
+          expectedResult: tc.expectedResult,
+          requirementId: tc.requirementId ?? null,
+        })),
+      );
+
+      if (testCaseRows.length) {
+        await this.prisma.projectTestCase.createMany({
+          data: testCaseRows,
+          skipDuplicates: true,
+        });
+      }
+    }
+
     await this.prisma.projectActivity.create({
       data: {
         projectId: result.projectId,

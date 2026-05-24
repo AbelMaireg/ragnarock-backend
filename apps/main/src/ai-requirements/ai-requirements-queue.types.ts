@@ -212,6 +212,23 @@ export type AiQaIntelligenceAcceptedResponse = {
   status: "queued";
 };
 
+export type QaTestCase = {
+  id: string;
+  type: "unit" | "integration" | "e2e";
+  title: string;
+  preconditions: string[];
+  steps: string[];
+  expectedResult: string;
+  requirementId?: string | null;
+};
+
+export type QaTestSuite = {
+  featureId: string;
+  featureName: string;
+  acceptanceCriteria: string[];
+  testCases: QaTestCase[];
+};
+
 export type AiQaIntelligenceSucceededResult = {
   jobId: string;
   projectId: string;
@@ -219,6 +236,7 @@ export type AiQaIntelligenceSucceededResult = {
   status: "qa_intelligence_succeeded";
   content: string;
   title: string;
+  testSuites: QaTestSuite[];
   completedAt?: string;
 };
 

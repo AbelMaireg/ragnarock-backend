@@ -337,6 +337,20 @@ export class ProjectsService {
     };
   }
 
+  async getFeatures(projectId: string) {
+    return this.prismaService.projectFeature.findMany({
+      where: { projectId },
+      orderBy: { externalId: "asc" },
+      include: {
+        requirements: {
+          select: { id: true, externalId: true, title: true, status: true },
+          orderBy: { externalId: "asc" },
+        },
+        _count: { select: { tasks: true, testCases: true } },
+      },
+    });
+  }
+
   private async ensureExists(organizationId: string, projectId: string) {
     const project = await this.prismaService.project.findFirst({
       where: { id: projectId, organizationId },

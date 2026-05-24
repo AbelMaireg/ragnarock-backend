@@ -1,9 +1,15 @@
 /** Responses from FastAPI agent (discriminator `status`). */
 
+export type SrsFeature = {
+  featureId: string;
+  name: string;
+  description: string;
+};
+
 export type AgentPartialSrs = {
   project_name?: string | null;
   summary?: string | null;
-  features?: { name: string; description: string }[];
+  features?: SrsFeature[];
   user_roles?: string[];
   functional_requirements?: string[];
   non_functional_requirements?: string[];
@@ -22,7 +28,7 @@ export type AgentRequirementResponse = {
   status: "complete";
   project_name: string;
   summary: string;
-  features: { name: string; description: string }[];
+  features: SrsFeature[];
   functional_requirements: string[];
   non_functional_requirements: string[];
   user_stories: { role: string; goal: string; benefit: string }[];

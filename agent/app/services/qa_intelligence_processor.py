@@ -39,6 +39,7 @@ class QaIntelligenceProcessor:
             userId=job.user_id,
             content=content,
             title=title,
+            testSuites=breakdown.test_suites,
         )
 
 
