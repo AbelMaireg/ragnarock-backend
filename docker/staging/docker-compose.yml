@@ -45,7 +45,6 @@ services:
     image: axllent/mailpit:latest
     ports:
       - "1025:1025"
-      - "8025:8025"
 
   agent:
     build:
@@ -66,8 +65,6 @@ services:
       context: ../..
       dockerfile: docker/staging/Dockerfile.main
     env_file: ../../.env
-    ports:
-      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,8 +89,6 @@ services:
       context: ../..
       dockerfile: docker/staging/Dockerfile.admin
     env_file: ../../.env
-    ports:
-      - "8001:8001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,7 +96,20 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   typesense_data:
+  npm_data:
+  npm_letsencrypt:
