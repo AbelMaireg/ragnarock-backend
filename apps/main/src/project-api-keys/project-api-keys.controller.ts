@@ -45,10 +45,7 @@ export class ProjectApiKeysController {
   }
 
   @Get()
-  list(
-    @CurrentOrganization() organizationId: string,
-    @Param("projectId") projectId: string,
-  ) {
+  list(@CurrentOrganization() organizationId: string, @Param("projectId") projectId: string) {
     return this.service.list(projectId, organizationId);
   }
 

@@ -20,7 +20,10 @@ export class ArchitectureTool {
     });
 
     if (!docs.length) {
-      return { error: "No architecture documents found. Generate SAD/HLD/LLD documents from the dashboard first." };
+      return {
+        error:
+          "No architecture documents found. Generate SAD/HLD/LLD documents from the dashboard first.",
+      };
     }
 
     return docs.map((d) => ({
@@ -47,7 +50,9 @@ export class ArchitectureTool {
     });
 
     if (!doc) {
-      return { error: `Document "${docId}" not found. Use get_architecture_docs to list available documents.` };
+      return {
+        error: `Document "${docId}" not found. Use get_architecture_docs to list available documents.`,
+      };
     }
 
     return doc;

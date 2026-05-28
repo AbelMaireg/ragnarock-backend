@@ -18,7 +18,7 @@ async function bootstrap() {
 
   setupMcpDocs(app);
 
-  const port = process.env.MCP_PORT ?? 3002;
+  const port = process.env.MCP_PORT ?? 8002;
   await app.listen(port);
   console.log(`Ragnarock MCP server running on port ${port}`);
   console.log(`API docs available at http://localhost:${port}/docs`);

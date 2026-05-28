@@ -318,7 +318,8 @@ curl -X POST http://localhost:3002/mcp \\
       get: {
         tags: ["MCP Transport"],
         summary: "MCP SSE stream (GET)",
-        description: "Opens a Server-Sent Events stream for server-initiated notifications. Used by stateful MCP clients.",
+        description:
+          "Opens a Server-Sent Events stream for server-initiated notifications. Used by stateful MCP clients.",
         security: [{ ApiKeyHeader: [] }],
         responses: {
           "200": { description: "SSE stream opened" },
@@ -360,7 +361,9 @@ curl -X POST http://localhost:3002/mcp \\
                           {
                             title: "Ragnarock SRS v1",
                             updatedAt: "2026-05-01T00:00:00Z",
-                            features: [{ featureId: "feat_001", name: "User auth", description: "..." }],
+                            features: [
+                              { featureId: "feat_001", name: "User auth", description: "..." },
+                            ],
                             functional_requirements: ["Users can sign up with email"],
                             non_functional_requirements: ["P99 latency < 200ms"],
                           },
@@ -414,7 +417,9 @@ curl -X POST http://localhost:3002/mcp \\
                               taskCount: 4,
                               testCaseCount: 6,
                               requirementCount: 3,
-                              requirements: [{ id: "fr_001", title: "Email sign-up", status: "approved" }],
+                              requirements: [
+                                { id: "fr_001", title: "Email sign-up", status: "approved" },
+                              ],
                             },
                           ],
                           null,
@@ -671,7 +676,8 @@ curl -X POST http://localhost:3002/mcp \\
   tags: [
     {
       name: "MCP Transport",
-      description: "The underlying HTTP transport endpoint. All tool calls go through `POST /mcp`.\n\n**Note:** This endpoint cannot be tested from this UI — it requires `Accept: text/event-stream` which browser clients do not send. Connect via Claude Code or another MCP client.",
+      description:
+        "The underlying HTTP transport endpoint. All tool calls go through `POST /mcp`.\n\n**Note:** This endpoint cannot be tested from this UI — it requires `Accept: text/event-stream` which browser clients do not send. Connect via Claude Code or another MCP client.",
     },
     {
       name: "Tools",
@@ -682,12 +688,9 @@ curl -X POST http://localhost:3002/mcp \\
 };
 
 export function setupMcpDocs(app: INestApplication): void {
-  app.use(
-    "/docs/openapi.json",
-    (_req: any, res: any) => {
-      res.json(TOOLS_OPENAPI_SPEC);
-    },
-  );
+  app.use("/docs/openapi.json", (_req: any, res: any) => {
+    res.json(TOOLS_OPENAPI_SPEC);
+  });
 
   app.use(
     "/docs",

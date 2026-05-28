@@ -84,9 +84,7 @@ export class TasksTool {
       where: { id: taskId },
       data: {
         status: "done",
-        labels: prUrl
-          ? { push: [`pr:${prUrl}`] }
-          : undefined,
+        labels: prUrl ? { push: [`pr:${prUrl}`] } : undefined,
       },
     });
 

@@ -52,7 +52,9 @@ export class ProjectApiKeysService {
       select: { id: true },
     });
     if (existing) {
-      throw new ConflictException(`An API key named "${params.name}" already exists for this project.`);
+      throw new ConflictException(
+        `An API key named "${params.name}" already exists for this project.`,
+      );
     }
 
     const rawToken = generateRawToken();

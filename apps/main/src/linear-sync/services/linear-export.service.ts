@@ -1,9 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import {
-  LinearProjectSyncStatus,
-  LinearSyncDirection,
-  TaskStatus,
-} from "@prisma/client";
+import { LinearProjectSyncStatus, LinearSyncDirection, TaskStatus } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "@app/prisma";
 import { LinearGraphqlService } from "./linear-graphql.service";

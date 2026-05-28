@@ -105,7 +105,9 @@ export class McpServerService {
         description:
           "Returns all test cases for a specific feature (unit, integration, e2e). Use feature IDs from get_features (e.g. feat_001).",
         inputSchema: z.object({
-          featureId: z.string().describe("The feature external ID (e.g. feat_001) from get_features"),
+          featureId: z
+            .string()
+            .describe("The feature external ID (e.g. feat_001) from get_features"),
         }),
       },
       async ({ featureId }) => {

@@ -12,7 +12,9 @@ export class TestCasesTool {
     });
 
     if (!feature) {
-      return { error: `Feature "${featureId}" not found. Use get_features to see valid feature IDs.` };
+      return {
+        error: `Feature "${featureId}" not found. Use get_features to see valid feature IDs.`,
+      };
     }
 
     const testCases = await this.prisma.projectTestCase.findMany({

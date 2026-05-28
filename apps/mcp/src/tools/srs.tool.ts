@@ -13,7 +13,9 @@ export class SrsTool {
     });
 
     if (!spec) {
-      return { error: "No completed SRS found for this project. Complete a requirements session first." };
+      return {
+        error: "No completed SRS found for this project. Complete a requirements session first.",
+      };
     }
 
     return {
