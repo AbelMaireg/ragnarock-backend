@@ -1,0 +1,6 @@
+# Development / test dependencies
+pytest>=8.0
+pytest-cov
+pytest-mock
+respx
+httpx
