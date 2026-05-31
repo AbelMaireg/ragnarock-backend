@@ -1,22 +1,34 @@
+jest.mock("@app/prisma", () => ({ PrismaService: jest.fn() }));
 import { Test, TestingModule } from "@nestjs/testing";
 import { AdminController } from "./admin.controller";
 import { AdminService } from "./admin.service";
 
 describe("AdminController", () => {
-  let adminController: AdminController;
+  let controller: AdminController;
+
+  const mockService = {
+    getHello: () => "Hello World!",
+    testDbConnection: jest.fn().mockResolvedValue({ status: "ok" }),
+  };
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminController],
-      providers: [AdminService],
+      providers: [
+        { provide: AdminService, useValue: mockService },
+      ],
     }).compile();
 
-    adminController = app.get<AdminController>(AdminController);
+    controller = module.get<AdminController>(AdminController);
   });
 
-  describe("root", () => {
-    it('should return "Hello World!"', () => {
-      expect(adminController.getHello()).toBe("Hello World!");
-    });
+  it("GET / returns Hello World!", () => {
+    expect(controller.getHello()).toBe("Hello World!");
+  });
+
+  it("GET /db/ping returns ok", async () => {
+    const r = await controller.testDbConnection();
+    expect(r).toEqual({ status: "ok" });
   });
 });
+
