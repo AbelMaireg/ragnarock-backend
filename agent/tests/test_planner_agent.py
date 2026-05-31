@@ -67,3 +67,10 @@ def test_parse_planner_response_wrong_status_raises():
     raw = json.dumps({"status": "something_else"})
     with pytest.raises(ValueError):
         parse_planner_response(raw)
+
+
+def test_parse_planner_response_schema_validation_raises():
+    # Missing required fields for TaskBreakdown (no projectName/tasks)
+    raw = json.dumps({"status": "planner_complete"})
+    with pytest.raises(Exception):
+        parse_planner_response(raw)

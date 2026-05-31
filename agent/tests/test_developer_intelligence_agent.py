@@ -35,3 +35,10 @@ def test_build_user_prompt_includes_srs_and_question():
     assert "SOFTWARE REQUIREMENTS SPECIFICATION" in prompt
     assert "How should I implement authentication?" in prompt
     assert "Login" in prompt
+
+
+def test_build_user_prompt_handles_missing_srs():
+    inp = make_agent_input()
+    inp.partial_srs = PartialSrs()
+    prompt = build_user_prompt(inp)
+    assert "No SRS available" in prompt or "SOFTWARE REQUIREMENTS SPECIFICATION" in prompt

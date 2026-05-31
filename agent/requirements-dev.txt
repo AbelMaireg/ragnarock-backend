@@ -4,3 +4,5 @@ pytest-cov
 pytest-mock
 respx
 httpx
+pytest-asyncio
+asgi-lifespan
