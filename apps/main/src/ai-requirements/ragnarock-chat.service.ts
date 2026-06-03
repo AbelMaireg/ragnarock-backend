@@ -60,10 +60,19 @@ export class RagnarockChatService {
       throw new NotFoundException("Project not found");
     }
 
-    // Verify session belongs to this user/project
+    // Verify session belongs to this user/project and fetch prior messages
     const session = await this.prisma.ragnarockChatSession.findFirst({
       where: { id: params.sessionId, projectId: params.projectId, userId: params.userId },
-      select: { id: true, title: true, _count: { select: { messages: true } } },
+      select: {
+        id: true,
+        title: true,
+        _count: { select: { messages: true } },
+        messages: {
+          orderBy: { createdAt: "asc" },
+          select: { role: true, content: true },
+          take: 40,
+        },
+      },
     });
     if (!session) throw new NotFoundException("Chat session not found");
 
@@ -94,6 +103,7 @@ export class RagnarockChatService {
       userId: params.userId,
       sessionId: params.sessionId,
       message: params.message,
+      history: session.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
       projectSnapshot: snapshot,
       attempts: 0,
       queuedAt: new Date().toISOString(),

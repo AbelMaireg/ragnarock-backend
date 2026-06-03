@@ -1,4 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import TypedDict
+
+
+class ConversationMessage(TypedDict):
+    role: str  # "user" | "assistant"
+    content: str
 
 
 class LLMError(Exception):
@@ -16,10 +22,16 @@ class BaseLLMProvider(ABC):
     """
 
     @abstractmethod
-    async def generate(self, system_prompt: str, user_prompt: str) -> str:
+    async def generate(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        history: list[ConversationMessage] | None = None,
+    ) -> str:
         """
         Send prompts to the LLM and return the raw response string.
-        The caller (agent) is responsible for parsing and validating the output.
+        history is a list of prior turns in chronological order (oldest first),
+        each with 'role' and 'content' keys.
         """
         ...
 

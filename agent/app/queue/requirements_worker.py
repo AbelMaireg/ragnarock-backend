@@ -240,17 +240,23 @@ class RequirementsQueueWorker:
         payload: str,
         error: Exception,
     ) -> None:
+        import asyncio
         next_attempts = job.attempts + 1
         reason = str(error) or error.__class__.__name__
 
-        if next_attempts <= self.settings.ai_requirements_queue_max_retries:
+        is_quota_error = "quota" in reason.lower() or "429" in reason
+        if is_quota_error or next_attempts <= self.settings.ai_requirements_queue_max_retries:
+            # Exponential backoff: 2s, 4s, 8s … capped at 30s; quota errors always wait at least 5s
+            delay = min(30, max(5 if is_quota_error else 2, 2 ** next_attempts))
+            await asyncio.sleep(delay)
             retry_job = job.model_copy(update={"attempts": next_attempts})
             await self._requeue_job(retry_job)
             await self._ack(message_id)
             logger.warning(
-                "AI requirements job requeued | job_id=%s | attempt=%d | error=%s",
+                "AI requirements job requeued | job_id=%s | attempt=%d | delay=%ds | error=%s",
                 job.job_id,
                 next_attempts,
+                delay,
                 reason,
             )
             return

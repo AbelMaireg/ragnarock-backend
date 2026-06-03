@@ -34,7 +34,40 @@ _DOC_TYPE_PATTERNS: dict[str, re.Pattern[str]] = {
 }
 
 
+_SLASH_SRS = re.compile(r"^\s*/srs\s*$", re.IGNORECASE)
+_SLASH_PLAN = re.compile(r"^\s*/plan\s*$", re.IGNORECASE)
+_SLASH_DOC = re.compile(r"^\s*/doc\s+(sad|hld|lld|adr)\s*$", re.IGNORECASE)
+
+
 def detect_intent(message: str) -> DetectedAction | None:
+    # Explicit slash commands take priority
+    if _SLASH_SRS.match(message):
+        return DetectedAction(
+            type="generate_srs",
+            confirmationText=(
+                "I can start a requirements session for this project. "
+                "This will walk you through the SRS with the AI."
+            ),
+        )
+    if _SLASH_PLAN.match(message):
+        return DetectedAction(
+            type="generate_plan",
+            confirmationText=(
+                "I can generate a task plan from your project SRS. "
+                "This will create tasks in your backlog based on the requirements."
+            ),
+        )
+    m = _SLASH_DOC.match(message)
+    if m:
+        doc_type = m.group(1).lower()
+        labels = {"sad": "Software Architecture Document", "hld": "High-Level Design", "lld": "Low-Level Design", "adr": "Architecture Decision Record"}
+        return DetectedAction(
+            type="generate_doc",
+            docType=doc_type,
+            confirmationText=f"I can generate a {labels[doc_type]} from your project SRS.",
+        )
+
+    # Natural language fallback
     if _SRS_PATTERNS.search(message):
         return DetectedAction(
             type="generate_srs",
@@ -103,13 +136,15 @@ SRS completed: {srs_status}
 - Do NOT perform any write operations or claim you can modify data.
 - Do NOT suggest the user do things via other pages — you can refer to actions they can take within this chat (e.g. type /plan to generate a plan).
 
-## Handling action commands
+## Slash commands — STRICT rules
 
-When the user sends /srs, /plan, or /doc (sad|hld|lld|adr):
-- For /srs: Check if an SRS exists. If not, ask the user a focused first question to kick off requirements gathering (e.g. what problem does this project solve?). If one exists, summarize it and ask what they'd like to refine.
-- For /plan: Confirm you're generating a task plan from the SRS, mention how many features you found, and tell them it will appear in the panel on the right.
-- For /doc sad|hld|lld|adr: Confirm you're generating the document, briefly describe what it covers, and tell them it will appear in the panel on the right.
-Never say "No requirements session not yet done" — always respond with a helpful next step.
+If the user message starts with "/" treat it as a command. Follow these rules exactly with NO deviation:
+
+- "/plan" → Reply: "Your task plan is being generated now — it will appear in the panel on the right once ready."
+- "/doc sad" → Reply: "Generating the Software Architecture Document now — it will appear in the panel on the right once ready."
+- "/doc hld" → Reply: "Generating the High-Level Design document now — it will appear in the panel on the right once ready."
+- "/doc lld" → Reply: "Generating the Low-Level Design document now — it will appear in the panel on the right once ready."
+- "/doc adr" → Reply: "Generating the Architecture Decision Record now — it will appear in the panel on the right once ready."
 """
 
 

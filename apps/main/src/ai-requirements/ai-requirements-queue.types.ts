@@ -305,6 +305,11 @@ export type RagnarockProjectSnapshot = {
   recentActivity: RagnarockActivitySummary[];
 };
 
+export type RagnarockConversationTurn = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export type RagnarockChatQueuedJob = {
   jobType: "ragnarock_chat";
   jobId: string;
@@ -313,6 +318,7 @@ export type RagnarockChatQueuedJob = {
   userId: string;
   sessionId: string;
   message: string;
+  history: RagnarockConversationTurn[];
   projectSnapshot: RagnarockProjectSnapshot;
   attempts: number;
   queuedAt: string;

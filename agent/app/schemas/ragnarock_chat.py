@@ -8,6 +8,12 @@ from app.schemas.queue import QueueModel
 
 # ─── Job sent from NestJS → FastAPI worker ───────────────────────────────────
 
+class ConversationTurn(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class RagnarockChatJob(QueueModel):
     job_type: Literal["ragnarock_chat"] = Field(default="ragnarock_chat", alias="jobType")
     job_id: str = Field(alias="jobId")
@@ -16,6 +22,7 @@ class RagnarockChatJob(QueueModel):
     user_id: str = Field(alias="userId")
     session_id: str = Field(alias="sessionId")
     message: str
+    history: list[ConversationTurn] = Field(default_factory=list)
     project_snapshot: ProjectSnapshot = Field(alias="projectSnapshot")
     attempts: int = 0
     queued_at: str = Field(alias="queuedAt")

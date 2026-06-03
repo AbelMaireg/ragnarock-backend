@@ -9,24 +9,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-
-  pgvector-memory:
-    image: pgvector/pgvector:pg17
-    environment:
-      POSTGRES_USER: ai
-      POSTGRES_PASSWORD: ai_secret
-      POSTGRES_DB: ai_memory
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgvector_memory_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ai -d ai_memory"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -104,8 +89,5 @@ services:
 
 volumes:
   postgres_data:
-  pgvector_memory_data:
   redis_data:
   typesense_data:
-  apps_node_modules:
-  apps_bun_cache:

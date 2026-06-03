@@ -25,8 +25,8 @@ def _memory_enabled() -> bool:
 
 
 @retry(
-    stop=stop_after_attempt(2),
-    wait=wait_fixed(1),
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2),
     retry=retry_if_exception_type((json.JSONDecodeError, ValueError)),
     reraise=True,
 )
@@ -48,9 +48,23 @@ async def _call_llm(agent_input) -> OrchestratorOutput:
     return _parse(raw)
 
 
+def _strip_fences(raw: str) -> str:
+    """Remove ```json ... ``` or ``` ... ``` markdown fences Gemini wraps responses in."""
+    stripped = raw.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        # Drop opening fence line and closing fence line
+        inner = lines[1:] if lines[0].startswith("```") else lines
+        if inner and inner[-1].strip() == "```":
+            inner = inner[:-1]
+        return "\n".join(inner).strip()
+    return stripped
+
+
 def _parse(raw: str) -> OrchestratorOutput:
+    cleaned = _strip_fences(raw)
     try:
-        data = json.loads(raw)
+        data = json.loads(cleaned)
     except json.JSONDecodeError as e:
         logger.error("RequirementNode | invalid JSON from LLM: %s", raw[:200])
         raise e
