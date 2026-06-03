@@ -22,6 +22,7 @@ export class ProjectSpecificationsService {
           projectId: true,
           chatSessionId: true,
           title: true,
+          payload: true,
           createdBy: true,
           createdAt: true,
           updatedAt: true,

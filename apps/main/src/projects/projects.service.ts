@@ -136,6 +136,7 @@ export class ProjectsService {
         members: true,
         _count: { select: { requirements: true, tasks: true, documentations: true } },
       },
+      // draftSrsProgress is a scalar field — included by default
     });
     if (!project) {
       throw new NotFoundException("Project not found");
@@ -325,6 +326,7 @@ export class ProjectsService {
           totalRequirements > 0
             ? Math.round((requirementsImplemented / totalRequirements) * 100)
             : 0,
+        srsCompletionPercent: project.draftSrsProgress ?? 0,
       },
       highlights: {
         lastProjectUpdateAt: project.updatedAt,
