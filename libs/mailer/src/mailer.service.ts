@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EmailTemplate } from "./email-template.registry";
 import { EmailQueueProducer } from "./queue/email-queue.producer";
@@ -6,6 +6,8 @@ import { MailSender, SendTemplateEmailInput } from "./types/email.types";
 
 @Injectable()
 export class MailerService {
+  private readonly logger = new Logger(MailerService.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly emailQueueProducer: EmailQueueProducer,
@@ -19,12 +21,22 @@ export class MailerService {
       name: this.configService.get<string>("mail.fromName"),
     };
 
-    return this.emailQueueProducer.enqueue({
+    const queueMessageId = await this.emailQueueProducer.enqueue({
       to: input.to,
       subject: input.subject,
       template: input.template,
       context: input.context,
       from: input.from ?? defaultSender,
     });
+
+    this.logger.log(
+      `[Email queued] to=${this.formatRecipient(input.to)} subject="${input.subject}" template=${input.template} queueId=${queueMessageId}`,
+    );
+
+    return queueMessageId;
+  }
+
+  private formatRecipient(to: string | string[]): string {
+    return Array.isArray(to) ? to.join(",") : to;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import * as brevo from "@getbrevo/brevo";
 import { SendEmailInput } from "../types/email.types";
 import { EmailClientStrategy } from "./email-client.strategy";
@@ -9,6 +9,7 @@ interface BrevoConfig {
 
 @Injectable()
 export class BrevoEmailStrategy implements EmailClientStrategy {
+  private readonly logger = new Logger(BrevoEmailStrategy.name);
   private readonly api: brevo.TransactionalEmailsApi;
 
   constructor(config: BrevoConfig) {
@@ -17,6 +18,7 @@ export class BrevoEmailStrategy implements EmailClientStrategy {
   }
 
   async send(input: SendEmailInput): Promise<void> {
+    const recipient = Array.isArray(input.to) ? input.to.join(",") : input.to;
     const payload = new brevo.SendSmtpEmail();
     payload.subject = input.subject;
     payload.htmlContent = input.html;
@@ -24,7 +26,18 @@ export class BrevoEmailStrategy implements EmailClientStrategy {
     payload.to = this.toRecipients(input.to);
     payload.sender = input.from ? { email: input.from.email, name: input.from.name } : undefined;
 
-    await this.api.sendTransacEmail(payload);
+    try {
+      const response = await this.api.sendTransacEmail(payload);
+      this.logger.log(
+        `[Brevo success] to=${recipient} subject="${input.subject}" messageId=${response.body?.messageId ?? "unknown"}`,
+      );
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown error";
+      this.logger.error(
+        `[Brevo failed] to=${recipient} subject="${input.subject}" error="${reason}"`,
+      );
+      throw error;
+    }
   }
 
   private toRecipients(to: string | string[]): Array<{ email: string }> {

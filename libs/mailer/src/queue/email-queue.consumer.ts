@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createClient, RedisClientType } from "redis";
 import { EMAIL_CLIENT_STRATEGY } from "../mailer.tokens";
@@ -10,6 +10,7 @@ import { QueuedEmailJob } from "./email-queue.types";
 
 @Injectable()
 export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(EmailQueueConsumer.name);
   private readonly redisClient: RedisClientType;
   private readonly stream: string;
   private readonly group: string;
@@ -19,6 +20,7 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly maxRetries: number;
   private readonly claimIdleMs: number;
   private readonly deadLetterStream: string;
+  private readonly mailDriver: string;
   private running = false;
   private loopPromise?: Promise<void>;
 
@@ -28,6 +30,7 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
     @Inject(EMAIL_CLIENT_STRATEGY)
     private readonly emailStrategy: EmailClientStrategy,
   ) {
+    this.mailDriver = this.configService.get<string>("mail.driver", "nodemailer");
     this.stream = this.configService.getOrThrow<string>("redisEmailQueue.stream");
     this.group = this.configService.getOrThrow<string>("redisEmailQueue.group");
     this.consumer = this.configService.getOrThrow<string>("redisEmailQueue.consumer");
@@ -47,6 +50,9 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
   async onModuleInit(): Promise<void> {
     await this.ensureConnected();
     await this.ensureConsumerGroup();
+    this.logger.log(
+      `Email queue consumer started (driver=${this.mailDriver}, stream=${this.stream}, group=${this.group})`,
+    );
     this.running = true;
     this.loopPromise = this.consumeLoop();
   }
@@ -72,6 +78,12 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async processMessage(messageId: string, payload: string): Promise<void> {
     const job = JSON.parse(payload) as QueuedEmailJob;
+    const attempt = job.attempts + 1;
+    const recipient = this.formatRecipient(job.to);
+
+    this.logger.log(
+      `[Email sending] to=${recipient} subject="${job.subject}" template=${job.template} driver=${this.mailDriver} attempt=${attempt}/${this.maxRetries} queueId=${messageId}`,
+    );
 
     try {
       const templatePath =
@@ -97,6 +109,9 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
 
       await this.emailStrategy.send(sendInput);
       await this.redisClient.sendCommand(["XACK", this.stream, this.group, messageId]);
+      this.logger.log(
+        `[Email success] to=${recipient} subject="${job.subject}" template=${job.template} driver=${this.mailDriver} queueId=${messageId}`,
+      );
     } catch (error) {
       await this.handleFailure(messageId, job, error);
     }
@@ -110,7 +125,12 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
     const nextAttempts = job.attempts + 1;
     const reason = error instanceof Error ? error.message : "Unknown error";
 
+    const recipient = this.formatRecipient(job.to);
+
     if (nextAttempts > this.maxRetries) {
+      this.logger.error(
+        `[Email failed] to=${recipient} subject="${job.subject}" template=${job.template} driver=${this.mailDriver} attempts=${nextAttempts} error="${reason}"`,
+      );
       await this.redisClient.sendCommand([
         "XADD",
         this.deadLetterStream,
@@ -128,6 +148,9 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
+    this.logger.warn(
+      `[Email retry] to=${recipient} subject="${job.subject}" template=${job.template} driver=${this.mailDriver} attempt=${nextAttempts}/${this.maxRetries} error="${reason}"`,
+    );
     await this.redisClient.sendCommand([
       "XADD",
       this.stream,
@@ -233,6 +256,10 @@ export class EmailQueueConsumer implements OnModuleInit, OnModuleDestroy {
     }
 
     return null;
+  }
+
+  private formatRecipient(to: string | string[]): string {
+    return Array.isArray(to) ? to.join(",") : to;
   }
 
   private async ensureConnected(): Promise<void> {

@@ -253,7 +253,6 @@ export const createBetterAuthInstance = (
         // Ensure signup triggers OTP delivery for verification flow.
         sendVerificationOnSignUp: true,
         sendVerificationOTP: async ({ email, otp, type }) => {
-          console.log(`[OTP] type=${type} email=${email} otp=${otp}`);
           const subjectByType: Record<string, string> = {
             "sign-in": "Your sign-in verification code",
             "email-verification": "Your email verification code",

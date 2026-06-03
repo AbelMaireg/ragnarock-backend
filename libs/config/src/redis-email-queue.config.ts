@@ -1,11 +1,22 @@
 import { registerAs } from "@nestjs/config";
 import { Transform } from "class-transformer";
-import { IsInt, IsString, Min } from "class-validator";
+import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { validateConfig } from "./validate-config";
 
 class RedisEmailQueueEnvironmentVariables {
+  /** Full Redis URL. When unset, built from REDIS_HOST and REDIS_PORT (same as cache config). */
   @IsString()
-  REDIS_URL = "redis://redis:6379";
+  @IsOptional()
+  REDIS_URL?: string;
+
+  @IsString()
+  REDIS_HOST = "redis";
+
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  REDIS_PORT = 6379;
 
   @IsString()
   EMAIL_QUEUE_STREAM = "stream:email:outgoing";
@@ -44,9 +55,10 @@ class RedisEmailQueueEnvironmentVariables {
 
 export default registerAs("redisEmailQueue", () => {
   const env = validateConfig(RedisEmailQueueEnvironmentVariables, process.env);
+  const redisUrl = env.REDIS_URL ?? `redis://${env.REDIS_HOST}:${env.REDIS_PORT}`;
 
   return {
-    redisUrl: env.REDIS_URL,
+    redisUrl,
     stream: env.EMAIL_QUEUE_STREAM,
     group: env.EMAIL_QUEUE_GROUP,
     consumer: env.EMAIL_QUEUE_CONSUMER,

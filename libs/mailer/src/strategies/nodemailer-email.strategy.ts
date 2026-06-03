@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import * as nodemailer from "nodemailer";
 import { Transporter } from "nodemailer";
 import { SendEmailInput } from "../types/email.types";
@@ -14,6 +14,7 @@ interface NodemailerConfig {
 
 @Injectable()
 export class NodemailerEmailStrategy implements EmailClientStrategy {
+  private readonly logger = new Logger(NodemailerEmailStrategy.name);
   private readonly transporter: Transporter;
 
   constructor(config: NodemailerConfig) {
@@ -27,14 +28,28 @@ export class NodemailerEmailStrategy implements EmailClientStrategy {
   }
 
   async send(input: SendEmailInput): Promise<void> {
-    await this.transporter.sendMail({
-      from: input.from
-        ? `"${input.from.name ?? input.from.email}" <${input.from.email}>`
-        : undefined,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-    });
+    const recipient = Array.isArray(input.to) ? input.to.join(",") : input.to;
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: input.from
+          ? `"${input.from.name ?? input.from.email}" <${input.from.email}>`
+          : undefined,
+        to: input.to,
+        subject: input.subject,
+        html: input.html,
+        text: input.text,
+      });
+
+      this.logger.log(
+        `[SMTP success] to=${recipient} subject="${input.subject}" messageId=${info.messageId ?? "unknown"} response="${info.response ?? ""}"`,
+      );
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown error";
+      this.logger.error(
+        `[SMTP failed] to=${recipient} subject="${input.subject}" error="${reason}"`,
+      );
+      throw error;
+    }
   }
 }
