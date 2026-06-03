@@ -121,20 +121,10 @@ def build_user_prompt(job: AiQaIntelligenceJob) -> str:
     return "\n".join(lines)
 
 
-def _strip_fences(text: str) -> str:
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        inner = lines[1:] if lines[0].startswith("```") else lines
-        if inner and inner[-1].strip() == "```":
-            inner = inner[:-1]
-        return "\n".join(inner).strip()
-    return stripped
-
-
 def parse_qa_response(raw: str) -> QaTestBreakdown:
+    from app.core.llm.utils import strip_fences
     try:
-        data = json.loads(_strip_fences(raw))
+        data = json.loads(strip_fences(raw))
     except json.JSONDecodeError as e:
         raise ValueError(f"QaIntelligenceAgent | LLM returned invalid JSON: {e}") from e
 

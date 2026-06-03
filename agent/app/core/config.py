@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o"
 
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-chat"
+
     # Vector memory (Phase 3)
     database_url: str = ""
     embedding_model: str = "models/text-embedding-004"

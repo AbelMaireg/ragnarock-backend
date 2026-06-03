@@ -19,7 +19,11 @@ def get_llm_provider() -> BaseLLMProvider:
         from app.core.llm.openai import OpenAIProvider
         return OpenAIProvider()
 
+    if provider == "deepseek":
+        from app.core.llm.deepseek import DeepSeekProvider
+        return DeepSeekProvider()
+
     raise ValueError(
         f"Unknown LLM_PROVIDER '{provider}'. "
-        "Valid options: gemini | anthropic | openai"
+        "Valid options: gemini | anthropic | openai | deepseek"
     )

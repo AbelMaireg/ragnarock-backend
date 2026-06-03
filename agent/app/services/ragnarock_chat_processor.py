@@ -15,21 +15,10 @@ from app.schemas.ragnarock_chat import (
 logger = logging.getLogger(__name__)
 
 
-def _strip_fences(text: str) -> str:
-    """Remove ```json ... ``` or ``` ... ``` markdown fences."""
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        inner = lines[1:] if lines[0].startswith("```") else lines
-        if inner and inner[-1].strip() == "```":
-            inner = inner[:-1]
-        return "\n".join(inner).strip()
-    return stripped
-
-
 def _unwrap_json(text: str) -> str:
     """If the LLM returned JSON, extract a readable string from it."""
-    stripped = _strip_fences(text)
+    from app.core.llm.utils import strip_fences
+    stripped = strip_fences(text)
     if not stripped.startswith("{"):
         return stripped
     try:

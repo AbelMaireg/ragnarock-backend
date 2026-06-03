@@ -4,6 +4,7 @@ import json
 
 from app.schemas.planner import TaskBreakdown
 from app.schemas.queue import AiPlannerJob
+from app.core.llm.utils import strip_fences
 
 
 _SYSTEM_PROMPT = """You are the Project Planner Agent for Ragnarock, an AI-powered SDLC platform.
@@ -106,7 +107,7 @@ def build_user_prompt(job: AiPlannerJob) -> str:
 
 def parse_planner_response(raw: str) -> TaskBreakdown:
     try:
-        data = json.loads(raw)
+        data = json.loads(strip_fences(raw))
     except json.JSONDecodeError as e:
         raise ValueError(f"PlannerAgent | LLM returned invalid JSON: {e}") from e
 

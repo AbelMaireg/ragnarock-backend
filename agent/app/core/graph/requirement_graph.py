@@ -48,21 +48,9 @@ async def _call_llm(agent_input) -> OrchestratorOutput:
     return _parse(raw)
 
 
-def _strip_fences(raw: str) -> str:
-    """Remove ```json ... ``` or ``` ... ``` markdown fences Gemini wraps responses in."""
-    stripped = raw.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        # Drop opening fence line and closing fence line
-        inner = lines[1:] if lines[0].startswith("```") else lines
-        if inner and inner[-1].strip() == "```":
-            inner = inner[:-1]
-        return "\n".join(inner).strip()
-    return stripped
-
-
 def _parse(raw: str) -> OrchestratorOutput:
-    cleaned = _strip_fences(raw)
+    from app.core.llm.utils import strip_fences
+    cleaned = strip_fences(raw)
     try:
         data = json.loads(cleaned)
     except json.JSONDecodeError as e:
