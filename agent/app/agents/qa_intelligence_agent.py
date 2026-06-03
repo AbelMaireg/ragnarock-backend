@@ -76,7 +76,7 @@ def build_user_prompt(job: AiQaIntelligenceJob) -> str:
         for i, feat in enumerate(srs.features, start=1):
             feat_id = f"feat_{i:03d}"
             lines.append(f"  {feat_id}: {feat.name} — {feat.description}")
-            if feat.acceptance_criteria:
+            if getattr(feat, "acceptance_criteria", None):
                 for criterion in feat.acceptance_criteria:
                     lines.append(f"    • {criterion}")
 
@@ -121,9 +121,20 @@ def build_user_prompt(job: AiQaIntelligenceJob) -> str:
     return "\n".join(lines)
 
 
+def _strip_fences(text: str) -> str:
+    stripped = text.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        inner = lines[1:] if lines[0].startswith("```") else lines
+        if inner and inner[-1].strip() == "```":
+            inner = inner[:-1]
+        return "\n".join(inner).strip()
+    return stripped
+
+
 def parse_qa_response(raw: str) -> QaTestBreakdown:
     try:
-        data = json.loads(raw)
+        data = json.loads(_strip_fences(raw))
     except json.JSONDecodeError as e:
         raise ValueError(f"QaIntelligenceAgent | LLM returned invalid JSON: {e}") from e
 
