@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Handlebars from "handlebars";
 import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 
 @Injectable()
 export class TemplateRendererService {
@@ -43,7 +43,11 @@ export class TemplateRendererService {
   }
 
   private resolveViewsRoot(): string {
+    const defaultRoot = join(process.cwd(), "libs/mailer/src/templates/views");
     const configuredRoot = this.configService.get<string>("mail.templateRoot");
-    return configuredRoot ?? join(process.cwd(), "libs/mailer/src/templates/views");
+    if (!configuredRoot) {
+      return defaultRoot;
+    }
+    return isAbsolute(configuredRoot) ? configuredRoot : resolve(process.cwd(), configuredRoot);
   }
 }

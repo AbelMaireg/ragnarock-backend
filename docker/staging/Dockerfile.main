@@ -21,6 +21,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/libs/prisma/src/schema.prisma ./libs/prisma/src/schema.prisma
 COPY --from=builder /app/libs/prisma/src/migrations ./libs/prisma/src/migrations
+COPY --from=builder /app/libs/mailer/src/templates/views ./libs/mailer/src/templates/views
 COPY docker/staging/entrypoint.main.sh /usr/local/bin/entrypoint.sh
 
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
