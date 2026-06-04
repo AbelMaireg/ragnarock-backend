@@ -141,6 +141,7 @@ SRS completed: {srs_status}
 If the user message starts with "/" treat it as a command. Follow these rules exactly with NO deviation:
 
 - "/plan" → Reply: "Your task plan is being generated now — it will appear in the panel on the right once ready."
+- "/qa" → Reply: "Generating your QA test suite now — it will appear in the QA section once ready."
 - "/doc sad" → Reply: "Generating the Software Architecture Document now — it will appear in the panel on the right once ready."
 - "/doc hld" → Reply: "Generating the High-Level Design document now — it will appear in the panel on the right once ready."
 - "/doc lld" → Reply: "Generating the Low-Level Design document now — it will appear in the panel on the right once ready."

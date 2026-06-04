@@ -105,6 +105,18 @@ export class AiQaIntelligenceService {
   }
 
   private async persistTestSuite(result: AiQaIntelligenceSucceededResult): Promise<void> {
+    // Remove any previously generated STP docs + test cases so we never accumulate duplicates
+    const existing = await this.prisma.projectDocumentation.findMany({
+      where: { projectId: result.projectId, type: DocumentationType.stp, generationMode: "ai" },
+      select: { id: true },
+    });
+    if (existing.length) {
+      await this.prisma.projectTestCase.deleteMany({ where: { projectId: result.projectId } });
+      await this.prisma.projectDocumentation.deleteMany({
+        where: { id: { in: existing.map((d) => d.id) } },
+      });
+    }
+
     const doc = await this.prisma.projectDocumentation.create({
       data: {
         projectId: result.projectId,
